@@ -2,8 +2,6 @@
 -- Apart of the Quickzer Framework.
 -- Used to get module scripts in replicated storage serverstorage sever code whatevr and starter pllayer
 
-print('poo')
-
 ----------------------------->> Services <<---------------------------------
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")	
