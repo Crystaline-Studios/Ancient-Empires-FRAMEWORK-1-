@@ -24,7 +24,7 @@ return function(Name: String, Parent: String)
 	local function Check(Object)
 		for _,Child in pairs(Object:GetDescendants()) do
 			if Child.Name == Name and Child:IsA("ModuleScript") then
-				if Child.Parent.Name == Parent and Parent or not Parent then
+				if Parent Child.Parent.Name == Parent then
 					return Child
 				end
 			end
