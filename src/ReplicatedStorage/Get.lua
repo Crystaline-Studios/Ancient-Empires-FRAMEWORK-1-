@@ -1,51 +1,26 @@
 -- Created By Carrotoplia on Tue Oct 11 16:18:25 2022
--- Apart of the Quickzer Framework.
--- Used to get module scripts in replicated storage serverstorage sever code whatevr and starter pllayer
-
+-- Used to get module scripts quickly DO NOT USE THIS OUTSIDE OF THE SYSTEM
 
 ----------------------------->> Services <<---------------------------------
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")	
-local ServerStorage = game:GetService("ServerStorage")
-local StarterPlayer = game:GetService("StarterPlayer")
-local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
+
 local LocalPlayer = Players.LocalPlayer
 local LocalPlayerScripts = if LocalPlayer then LocalPlayer.PlayerScripts else nil
 
 ----------------------------->> Logic <<---------------------------------
 
-return function(Name: String, Parent: String)
+return function(Name: String)
 	assert(Name, "Missing Value: Name(FIRST PARAMETER)")
-	local Prefind = {
-		Quickzer = ReplicatedStorage.Quickzer,
-		Objectify = ReplicatedStorage.Quickzer.System.Objectify
-	}
 	
-	local function Check(Object)
-		for _,Child in pairs(Object:GetDescendants()) do
-			if Child.Name == Name and Child:IsA("ModuleScript") then
-				if Child.Parent.Name == Parent and Parent or not Parent then
-					return Child
-				end
-			end
-		end
-	end
-	
-	if Prefind[Name] then 
-		return Prefind[Name]
-	else
-		local Result = Check(ReplicatedStorage)
-		if not Result then
-			if RunService:IsServer() then
-				Result = Check(ServerScriptService)
-				if not Result then
-					Result = Check(ServerStorage)
-				end
-			else
-				Result = Check(LocalPlayerScripts)
-			end
-		end
-		return Result
+	if Name == "Luagame" then
+		return ReplicatedStorage.Luagame
+	elseif Name == "QuickSignal" then
+		return ReplicatedStorage.Luagame.LuaObjects.QuickSignal
+	elseif Name == "Objectify" then
+		return ReplicatedStorage.Luagame.Objectify
+	elseif Name == "Table" then
+		return ReplicatedStorage.Luagame.Libraries.Table
 	end
 end

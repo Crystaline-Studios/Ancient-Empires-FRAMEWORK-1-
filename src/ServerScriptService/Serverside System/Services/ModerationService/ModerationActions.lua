@@ -22,19 +22,10 @@ function Service:Ban(UserID, Reason, Time)
 
 	local Player = Players:GetPlayerByUserId(UserID)
 	local Data = DataBank:GetPlayerSystemDataTable(UserID)
-	if Time then
-		Data.Banned = os.time + Time
-	else
-		Data.Banned = true
-	end
-	if Reason then
-		Data.BanReason = Reason
-	end
-	if Player then
-		table.insert(Data.ModerationLogs, {
-			Time = Time
+	Data.Banned = if Time then os.time + Time else true
+	table.insert(Data.ModerationLogs, {Type = "Ban", Time = os.time(), Reason = Reason, BanTime = Time})
 
-		})
+	if Player then
 		Player:Kick(Data.BanReason)
 	end
 end
@@ -42,33 +33,50 @@ end
 function Service:ServerBan(UserID, Reason, Time)
 	assert(UserID, "Missing Parameter: UserID")
 	local Player = Players:GetPlayerByUserId(UserID)
+	local Data = DataBank:GetPlayerSystemDataTable(UserID)
+
+	table.insert(Data.ModerationLogs, {Type = "ServerBan", Time = os.time(), Reason = Reason, BanTime = Time})
+
 	if Player then
-		Player:Kick()
+		Player:Kick(Reason)
 	end
 	ServerBans[UserID] = {
-		Time = Time,
+		Time = os.time() + Time,
 		Reason = Reason
 	}
 end
 
-function Service:Kick(UserID, Reason, Warning)
+function Service:Kick(UserID, Reason)
 	assert(UserID, "Missing Parameter: UserID")
+	local Player = Players:GetPlayerByUserId(UserID)
+	local Data = DataBank:GetPlayerSystemDataTable(UserID)
+
+	table.insert(Data.ModerationLogs, {Type = "Kick", Time = os.time(), Reason = Reason})
+
+	if Player then
+		Player:Kick(Reason)
+	end
 end
 
-function Service:Warn(UserID, Reason, Warning)
+function Service:Warn(UserID, Reason)
 	assert(UserID, "Missing Parameter: UserID")
 end
 
 function Service:IsBanned(UserID)
 	assert(UserID, "Missing Parameter: UserID")
+	local Data = DataBank:GetPlayerSystemDataTable(UserID)
+	return Data.Banned
 end
 
 function Service:GetBanReason(UserID)
 	assert(UserID, "Missing Parameter: UserID")
+	local Data = DataBank:GetPlayerSystemDataTable(UserID)
+	return Data.BanReason
 end
 
 function Service:IsServerBanned(UserID)
 	assert(UserID, "Missing Parameter: UserID")
+
 end
 
 function Service:GetServerBanReason(UserID)
@@ -77,6 +85,8 @@ end
 
 function Service:GetModerationHistory(UserID)
 	assert(UserID, "Missing Parameter: UserID")
+	local Data = DataBank:GetPlayerSystemDataTable(UserID)
+	return Data.ModerationLogs
 end
 
 return Service

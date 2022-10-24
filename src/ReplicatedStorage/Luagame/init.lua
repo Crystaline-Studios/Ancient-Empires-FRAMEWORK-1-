@@ -1,5 +1,5 @@
 -- Created By Carrotoplia on Tue Oct 11 16:18:47 2022
--- Quickzer made for quick easy scripting
+-- Luagamezer made for Luagame easy scripting
 
 
 ----------------------------->> Services and modules <<---------------------------------
@@ -13,51 +13,110 @@ local LocalPlayerScripts; if LocalPlayer then LocalPlayerScripts = LocalPlayer.P
 
 local Get = require(game:GetService("ReplicatedStorage").Get)
 local Objectify = require(Get("Objectify"))
-local Luagame = require(Get("LuaService"))
+local QuickSignal = require(Get("QuickSignal"))
 
 ----------------------------->> Variables <<---------------------------------
 
 local IsClient = RunService:IsClient()
+
 local Libraries = {}
+local Services = {}
 
 local TrackedCoroutines = {}
 local TrackedScriptData = {}
 
+local ServiceAdded = QuickSignal.new()
 
 ----------------------------->> Object <<---------------------------------
 
 
-local Quick = {}
-Quick.Class = "Engine"
-Quick.class = Quick.Class
-
+local Luagame = setmetatable({}, {
+    __index = function(Index)
+        if rawget(Services, Index) == nil then
+            if game:GetService(Index) then
+                return game:GetService(Index)
+            else
+                return game[Index]
+            end
+        else
+            local Value = rawget(Services, Index)
+            if typeof(Value) == "Instance" then
+                local Holder = require(Value)
+                rawset(Services, Index, Holder)
+                return Holder
+            else
+                return Value
+            end
+        end
+    end
+})
+Luagame.Class = "Engine"
+Luagame.ServiceAdded = ServiceAdded
 
 
 ------------- Services Loader
 -- Loads stuff in this order
--- default system
--- server/client services
--- replicated ones
+-- system replicated services
+-- system server/client services then your services
+-- finally your replicated services
 -- it will override the oldest created services.
 
--- This allows for quick usage of services that are built in INSIDE services and stuff.
-Luagame:CreateFromFolder(script.System.Services)
+function CreateFromFolder(Folder)
+    for _,Service in pairs(Folder:GetChildren()) do
+		if Service:IsA("ModuleScript") then
+			
+			if Service:FindFirstChild("LoadInstantly") and Service.LoadInstantly.Value then
+				task.spawn(function()
+					Services[Service.Name] = require(Service)
+					ServiceAdded:Fire(Service.Name)
+				end)
+			else
+				Services[Service.Name] = Service
+				ServiceAdded:Fire(Service.Name)
+			end
+			
+		elseif Service:IsA("Folder") then
+			for _,ServiceA in pairs(Service:GetChildren()) do
+				if ServiceA:IsA("ModuleScript") then
+					if ServiceA:FindFirstChild("LoadInstantly") and ServiceA.LoadInstantly.Value then
+						task.spawn(function()
+							Services[ServiceA.Name] = require(ServiceA)
+							ServiceAdded:Fire(ServiceA.Name)
+						end)
+					else
+						Services[ServiceA.Name] = ServiceA
+					end
+				end
+			end
+		end
+	end
+end
+
+CreateFromFolder(script.Services)
 if IsClient then
 	-- Client
-	Luagame:CreateFromFolder(LocalPlayerScripts:WaitForChild("Clientside System").Services)
-	Luagame:CreateFromFolder(LocalPlayerScripts.Game.Services)
+	CreateFromFolder(LocalPlayerScripts["Clientside System"].Services)
+	CreateFromFolder(LocalPlayerScripts.Game.Services)
 else
 	-- Server
-	Luagame:CreateFromFolder(ServerScriptService:WaitForChild("Serverside System").Services)
-	Luagame:CreateFromFolder(ServerScriptService.Game.Services)
+	CreateFromFolder(ServerScriptService["Serverside System"].Services)
+	CreateFromFolder(ServerScriptService.Game.Services)
 end
-Luagame:CreateFromFolder(ReplicatedStorage.Game.Services)
+CreateFromFolder(ReplicatedStorage.Game.Services)
+
+
+function Luagame:GetService(Name)
+    return ServiceAdded:WaitWithCheck(function(NName)
+        if NName == Name then
+            return true
+        end
+    end)
+end
 
 
 
-
----------- Libraries Loader
-for _,Library in pairs(script.System.Libraries:GetChildren()) do
+---------- Libraries
+for _,Library in pairs(script.Libraries:GetChildren()) do
 	Libraries[Library.Name] = require(Library)
 end
 if IsClient then
@@ -76,7 +135,7 @@ end
 
 
 
-function Quick:Track(Script, Yield)
+function Luagame:Track(Script, Yield)
 	local Tab = {Coroutine = coroutine.running(), Value = true}
 	TrackedCoroutines[Script] = Tab
 	
@@ -86,15 +145,8 @@ function Quick:Track(Script, Yield)
 
 	return Tab
 end
-Quick.track = Quick.Track
 
-
-
-
-
-
-
-function Quick:Yield(Script)
+function Luagame:Yield(Script)
 	assert(Script, "Missing Parameter: Script")
 	
 	if not TrackedCoroutines[Script] then
@@ -105,12 +157,8 @@ function Quick:Yield(Script)
 	end
 	return TrackedScriptData[Script]
 end
-Quick.yield = Quick.Yield
 
-
-
-
-function Quick:Release(Script, ...)
+function Luagame:Release(Script, ...)
 	assert(Script, "Missing Parameter: Script")
 
 	if not TrackedCoroutines[Script] then
@@ -121,76 +169,41 @@ function Quick:Release(Script, ...)
 		coroutine.resume(TrackedCoroutines[Script].Coroutine)
 	end 
 end
-Quick.release = Quick.Release
 
-
-
-
-
-
-
-function Quick:YieldFolder(Folder)
+function Luagame:YieldFolder(Folder)
 	assert(Folder, "Missing Parameter: Folder")
 	for _,Child in pairs(Folder:GetChildren()) do
 		if Child:IsA("Script") or Child:IsA("LocalScript") then
-			Quick:Yield(Child)
+			Luagame:Yield(Child)
 		end
 	end
 end
 
-function Quick:ReleaseFolder(Folder, ...)
+function Luagame:ReleaseFolder(Folder, ...)
 	assert(Folder, "Missing Parameter: Folder")
 	for _,Child in pairs(Folder:GetChildren()) do
 		if Child:IsA("Script") or Child:IsA("LocalScript") then
-			Quick:Release(Child, ...)
+			Luagame:Release(Child, ...)
 		end
 	end
 end
-Quick.releasefolder = Quick.ReleaseFolder
-Quick.releaseFolder = Quick.ReleaseFolder
-
-
-
-
-
-function Quick:YieldFolderDeep(Folder)
+function Luagame:YieldFolderDeep(Folder)
 	assert(Folder, "Missing Parameter: Folder")
 	for _,Child in pairs(Folder:GetDescendants()) do
 		if Child:IsA("Script") or Child:IsA("LocalScript") then
-			Quick:Yield(Child)
+			Luagame:Yield(Child)
 		end
 	end
 end
-Quick.yieldfolderdeep = Quick.YieldFolderDeep
-Quick.yieldFolderDeep = Quick.YieldFolderDeep
-
-
-
-function Quick:ReleaseFolderDeep(Folder)
+function Luagame:ReleaseFolderDeep(Folder)
 	assert(Folder, "Missing Parameter: Folder")
 	for _,Child in pairs(Folder:GetDescendants()) do
 		if Child:IsA("Script") or Child:IsA("LocalScript") then
-			Quick:Release(Child)
+			Luagame:Release(Child)
 		end
 	end
 end
-Quick.releasefolderdeep = Quick.ReleaseFolderDeep
-Quick.releaseFolderDeep = Quick.ReleaseFolderDeep
 
 
----------- Short Functions
-function Quick:Luagame()
-	return Luagame
-end
-Quick.luagame = Quick.Luagame
-Quick.luaGame = Quick.Luagame
-Quick.LuaGame = Quick.Luagame
-
-function Quick:GetLibraries()
-	return Libraries
-end
-Quick.getlibraries = Quick.GetLibraries
-Quick.getLibraries = Quick.GetLibraries
-
-local Holder = Objectify(Quick)
-return Quick
+local Holder = Objectify(Luagame)
+return Luagame

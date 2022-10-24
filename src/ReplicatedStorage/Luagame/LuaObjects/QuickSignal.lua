@@ -21,6 +21,7 @@ function Object.new()
 	Signal.class = Signal.Class
 	Signal.Connections = {}
 	Signal.Once = {}
+	Signal.SystemConnections = {}
 	
 	
 	
@@ -29,12 +30,18 @@ function Object.new()
 	function Signal:Fire(...)
 		local Args = ...
 		task.spawn(function()
-			for _,Connection in pairs(self.Connections) do
+			for _,Connection in pairs(rawget(self, "Connections")) do
 				task.spawn(function()
 					Connection(Args)
 				end)
 			end
-			for Pos,Connection in pairs(self.Once) do
+			for Pos,Connection in pairs(rawget(self, "Once")) do
+				task.spawn(function()
+					Connection(Args)
+					table.remove(self.Once, Pos)
+				end)
+			end
+			for Pos,Connection in pairs(rawget(self, "SystemConnections")) do
 				task.spawn(function()
 					Connection(Args)
 					table.remove(self.Once, Pos)
@@ -108,7 +115,7 @@ function Object.new()
 		local Running = coroutine.running()
 		local ReturnValue
 		task.spawn(function()
-			Signal:Connect(function(...)
+			table.insert(Signal.SystemConnections, function(...)
 				ReturnValue = ...
 				coroutine.resume(Running)
 			end)
@@ -145,7 +152,7 @@ function Object.new()
 	
 	function Signal:DisconnectAll()
 		table.clear(Signal.Connections)
-		table.clone(Signal.Once)
+		table.clear(Signal.Once)
 	end
 	Signal.disconnectall = Signal.DisconnectAll
 	Signal.disconnectAll = Signal.DisconnectAll
@@ -181,6 +188,7 @@ function Object.new()
 	local Holder = Objectify(Signal)
 	Holder:SetHidden("Connections")
 	Holder:SetHidden("Once")
+	Holder:SetHidden("SystemConnections")
 	return Signal
 end
 Object.New = Object.new

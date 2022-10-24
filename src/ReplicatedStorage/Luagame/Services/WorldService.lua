@@ -9,7 +9,6 @@ local Workspace = game:GetService("Workspace")
 
 local Get = require(game:GetService("ReplicatedStorage").Get)
 local Objectify = require(Get("Objectify"))
-local ProfileService = require(script.Parent.ProfileService)
 
 ----------------------------->> THE ONLY SERVICE <<---------------------------------
 

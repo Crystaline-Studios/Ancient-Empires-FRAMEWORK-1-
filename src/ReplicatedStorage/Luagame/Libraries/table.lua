@@ -50,8 +50,6 @@ function Library:GetChangedEvent(Table)
 		setmetatable(Table, Meta)
 	end
 end
-Library.getchangedevent = Library.GetChangedEvent
-Library.getChangedEvent = Library.GetChangedEvent
 
 function Library:WaitForIndex(Table, Index)
 	local Changed = Library:GetChangedEvent(Table)

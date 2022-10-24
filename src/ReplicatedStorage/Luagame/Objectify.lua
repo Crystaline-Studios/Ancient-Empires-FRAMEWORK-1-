@@ -1,5 +1,5 @@
---Created By Carrotoplia on Mon Oct 10 18:11:51 2022
--- Used to quickly wrap up tables for use by the player
+-- Created By Carrotoplia on Mon Oct 10 18:11:51 2022
+-- Used to quickly wrap up tables for use so they error
 
 return function(Table, Config)
 	if not Table.Class and not Config
