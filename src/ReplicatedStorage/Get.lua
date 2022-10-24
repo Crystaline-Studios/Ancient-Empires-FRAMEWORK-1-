@@ -1,4 +1,4 @@
---Created By Carrotoplia on Tue Oct 11 16:18:25 2022
+-- Created By Carrotoplia on Tue Oct 11 16:18:25 2022
 -- Apart of the Quickzer Framework.
 -- Used to get module scripts in replicated storage serverstorage sever code whatevr and starter pllayer
 
@@ -11,7 +11,7 @@ local StarterPlayer = game:GetService("StarterPlayer")
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local LocalPlayerScripts; if LocalPlayer then LocalPlayerScripts = LocalPlayer.PlayerScripts end
+local LocalPlayerScripts = if LocalPlayer then LocalPlayer.PlayerScripts else nil
 
 ----------------------------->> Logic <<---------------------------------
 
