@@ -76,11 +76,18 @@ end
 
 function Service:IsServerBanned(UserID)
 	assert(UserID, "Missing Parameter: UserID")
-
+	if ServerBans[UserID] then
+		return true
+	else
+		return false 
+	end
 end
 
 function Service:GetServerBanReason(UserID)
 	assert(UserID, "Missing Parameter: UserID")
+	if ServerBans[UserID] then
+		return ServerBans[UserID].Reason 
+	end
 end
 
 function Service:GetModerationHistory(UserID)
