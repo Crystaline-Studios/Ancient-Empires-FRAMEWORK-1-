@@ -33,6 +33,11 @@ end)
 
 local Service = {}
 
+function Service:GetAnticheatLog(UserID)
+	local Data = DataBank:GetPlayerSystemDataTable(UserID)
+	return Data.AnticheatLogs
+end
+
 function Service:Ban(UserID, Reason, Time)
 	assert(UserID, "Missing Parameter: UserID")
 

@@ -48,7 +48,8 @@ function LoadData(Player)
 		local PSystemData1 = ProfileStore:LoadProfileAsync("PlayerSystemData1", {
 			Banned = false,
 			BanReason = "You have been banned.",
-			ModerationLogs = {}
+			ModerationLogs = {},
+			AnticheatLogs = {}
 		})
 		if PSystemData1 ~= nil then
 			PSystemData1:AddUserId(Player.UserId)
