@@ -48,6 +48,12 @@
             512
           ]
         }
+      },
+      "Map": {
+        "$className": "Folder"
+      },
+      "ScriptedMap": {
+        "$className": "Folder"
       }
     },
     "Lighting": {
