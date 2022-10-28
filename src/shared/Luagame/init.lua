@@ -130,6 +130,10 @@ else
 end
 
 
+function Luagame:GetLibraries()
+	return Libraries
+end
+
 ---------- Script State Control
 
 
