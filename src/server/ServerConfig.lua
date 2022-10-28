@@ -2,6 +2,9 @@
 -- For easy config creation
 local Config = {}
 
+Config.ModerationService = {
+	DistanceThreshold = 5 -- Extra Distance threshold for Laggy players. (Checks every second and walkspeed is studs per second this is extra for laggy players)
+}
 
 Config.Databank = {
 	DefaultPlayerProfile = {}

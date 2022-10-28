@@ -12,6 +12,22 @@ local SConfig = require(ServerScriptService.ServerConfig)
 ----------------------------->> All of the Variables! <<---------------------------------
 
 local ServerBans = {}
+Players.PlayerAdded:Connect(function(Player)
+	local Data = DataBank:GetPlayerSystemDataTable(Player.UserId)
+
+	if Data.Ban == true then
+		Player:Kick(Data.BanReason)
+	elseif Data.Ban and Data.Ban > os.Time() then
+		Player:Kick(Data.BanReason)
+	end
+
+	if ServerBans[Player.UserId] then
+		local BanData = ServerBans[Player.UserId]
+		if BanData.Time > os.time() then
+			Player:Kick(BanData.Time.Reason)
+		end
+	end
+end)
 
 ----------------------------->> The Service The Best One!!! <<---------------------------------
 
@@ -60,6 +76,7 @@ end
 
 function Service:Warn(UserID, Reason)
 	assert(UserID, "Missing Parameter: UserID")
+	warn("Warn is not implemented UIService Implementation is Required")
 end
 
 function Service:IsBanned(UserID)

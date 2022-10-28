@@ -12,10 +12,67 @@ local Workspace = game:GetService("Workspace")
 local SConfig = require(ServerScriptService.ServerConfig)
 local Config = SConfig.ModerationService
 
+local LastPositions = {}
+
 ----------------------------->> The Service / THE THE THE SERVICE <<---------------------------------
 
-local Service = {}
+local Service = setmetatable({}, {__index = require(script.ModerationActions)})
 
 
+Players.PlayerAdded:Connect(function(Player)
+    Player.CharacterAdded:Connect(function(Character)
+        local Root = Character:WaitForChild("HumanoidRootPart")
+        local Humanoid = Character:WaitForChild("Humanoid")
+        
+        LastPositions[Player] = {LastPositions[Player], {
+            IsGrounded = Humanoid.FloorMaterial ~= Enum.Material.Air,
+            Position = Root.Position
+        }}
+        local PositionData = LastPositions[Player]
+
+        while Root and Humanoid do
+            task.wait(0.25)
+            local LastData = PositionData[#PositionData]
+
+            ---------- Location 
+            local Distance = (LastData.Position - Root.Position).Magnitude
+            local MaxDistance = Humanoid.WalkSpeed + Config.DistanceThreshold; MaxDistance /= 4
+            if Distance > MaxDistance then
+                local LatestFrame
+                for Count = 1, #PositionData do
+                    if PositionData[Count].IsGrounded then
+                        LatestFrame = PositionData[Count]
+                    end
+                end
+                if not LatestFrame then
+                    Root.Position = PositionData[#PositionData - 1].Position
+                else
+                    Root.Position = LatestFrame.Position
+                end
+            end
+
+
+            table.insert(PositionData, {
+                IsGrounded = Humanoid.FloorMaterial ~= Enum.Material.Air,
+                Position = Root.Position
+            })
+        end
+
+        
+    end)
+end)
+
+function Service:SafeTP(Player, Location)
+    assert(Player, "Missing Parameter: Player")
+    assert(Location, "Missing Parameter: Location")
+
+    if Player.Character then
+        Player.Character:WaitForChild("HumanoidRootPart").Position = Location
+        table.insert(Player, {
+            IsGrounded = true,
+            Position = Location
+        })
+    end
+end
 
 return Service
