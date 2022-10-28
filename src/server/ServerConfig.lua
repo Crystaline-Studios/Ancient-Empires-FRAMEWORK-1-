@@ -3,8 +3,12 @@
 local Config = {}
 
 Config.ModerationService = {
-	DistanceThreshold = 5, -- Extra Distance threshold for Laggy players. (Checks every second and walkspeed is studs per second this is extra for laggy players)
-	NoclipThreshold = 0.5 -- Distance threshold For laggy players.
+	DistanceThreshold = 5, -- Extra Distance threshold for Laggy players. (walkspeed is equal to studs per second from player)
+	NoclipThreshold = 0.5, -- Distance threshold For laggy players.
+	AllowVoidStanding = false, -- If the player can be above void at all it.
+
+	DoMaxActionDetection = true, -- Enables player being attacked by anticheat when it triggers it too often
+	ActionsPerMinuteCap = 5 -- How many times can the player trigger the anticheat before being kicked per minute.
 }
 
 Config.Databank = {

@@ -10,6 +10,7 @@ local Get = require(game:GetService("ReplicatedStorage").Get)
 local Objectify = require(Get("Objectify"))
 local SConfig = require(ServerScriptService.ServerConfig)
 local table = require(Get("table"))
+local ModerationService = require(script.Parent.ModerationService)
 
 ----------------------------->> Variables and crap <<---------------------------------
 
@@ -28,7 +29,7 @@ function Service:Respawn(Player)
 	task.spawn(function()
 		local Root = Character:WaitForChild("HumanoidRootPart")
 		if Config.RespawnMethod == "Random" then
-			Character:MoveTo(table.random(Config.RespawnLocations))
+			ModerationService:SafeMoveTo(Player, table.random(Config.RespawnLocations))
 			
 			
 		elseif Config.RespawnMethod == "Far" then
@@ -49,7 +50,7 @@ function Service:Respawn(Player)
 					Location = SpawnL
 				end
 			end
-			Character:MoveTo(Location)
+			ModerationService:SafeMoveTo(Player, Location)
 			
 			
 		elseif Config.RespawnMethod == "Team" then
@@ -72,12 +73,12 @@ function Service:Respawn(Player)
 				end
 				
 				if FinalLocationTeamDistance == 0 then
-					Character:MoveTo(table.random(Config.RespawnLocations))
+					ModerationService:SafeMoveTo(Player, table.random(Config.RespawnLocations))
 				else
-					Character:MoveTo(FinalLocation)
+					ModerationService:SafeMoveTo(Player, FinalLocation)
 				end
 			else
-				Character:MoveTo(table.random(Config.RespawnLocations))
+				ModerationService:SafeMoveTo(Player, table.random(Config.RespawnLocations))
 			end
 			
 			
@@ -102,12 +103,12 @@ function Service:Respawn(Player)
 				end
 
 				if FinalLocationFriendDistance == 0 then
-					Character:MoveTo(table.random(Config.RespawnLocations))
+					ModerationService:SafeMoveTo(Player, table.random(Config.RespawnLocations))
 				else
-					Character:MoveTo(FinalLocation)
+					ModerationService:SafeMoveTo(Player, FinalLocation)
 				end
 			else
-				Character:MoveTo(table.random(Config.RespawnLocations))
+				ModerationService:SafeMoveTo(Player, table.random(Config.RespawnLocations))
 			end
 			
 		else
