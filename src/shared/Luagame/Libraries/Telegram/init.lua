@@ -6,6 +6,14 @@ local RunService = game:GetService("RunService")
 local Get = require(game:GetService("ReplicatedStorage").Get)
 local Objectify = require(Get("Objectify"))
 local Remote = script.RemoteEvent
+do
+	-- Makes it much harder for exploiters to figure out what remote it is
+	local CloneA = Remote:Clone()
+	local CloneB = Remote:Clone()
+
+	local Table = {Remote, CloneA, CloneB}
+	Remote = Table[math.random(1,3)]
+end
 
 ----------------------------->> Variables <<---------------------------------
 
