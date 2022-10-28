@@ -8,11 +8,16 @@ local Objectify = require(Get("Objectify"))
 local Remote = script.RemoteEvent
 do
 	-- Makes it much harder for exploiters to figure out what remote it is
-	local CloneA = Remote:Clone()
-	local CloneB = Remote:Clone()
-
-	local Table = {Remote, CloneA, CloneB}
-	Remote = Table[math.random(1,3)]
+	if RunService:IsServer() then
+		local CloneA = Remote:Clone(); CloneA.Name = "Clone"
+		local CloneB = Remote:Clone(); CloneB.Name = "Clone"
+	else
+		for _,Remote in pairs(script:GetChildren()) do
+			if Remote:IsA("RemoteEvent") then
+				Remote.Name = math.random(100000, 900000)
+			end
+		end
+	end
 end
 
 ----------------------------->> Variables <<---------------------------------
