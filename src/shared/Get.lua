@@ -21,6 +21,8 @@ return function(Name: String)
 	elseif Name == "Objectify" then
 		return ReplicatedStorage.Luagame.Objectify
 	elseif Name == "Table" then
+		return ReplicatedStorage.Luagame.Libraries.Table	
+	elseif Name == "table" then
 		return ReplicatedStorage.Luagame.Libraries.Table
 	end
 end
