@@ -1,5 +1,6 @@
 {
     "robloxLsp.diagnostics.disable": [
         "undefined-type"
-    ]
+    ],
+    "files.autoSave": "onFocusChange"
 }

@@ -46,7 +46,7 @@ function Service:New(Name)
     Table:GetChangedEvent(UI.Size):Connect(function()
         UI.Size = UDim2.new(UI.Size.X,0,UI.Size.Y,0)
     end)
-
+    
     Table:GetChangedEvent(UI):Connect(function(Index, NewValue)
         if Index == "Roundness" then
             if not Frame:FindFirstChild("UICorner") then
