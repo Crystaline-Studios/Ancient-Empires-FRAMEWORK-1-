@@ -3,7 +3,7 @@
 ----------------------------->> Modules and Services <<---------------------------------
 
 local Get = require(game:GetService("ReplicatedStorage").Get)
-local Objectify = require(Get("Objectify"))
+local Object = require(Get("Object"))
 local QuickSignal = require(Get("QuickSignal"))
 local table = require(Get("table"))
 
@@ -14,25 +14,18 @@ local Object = {}
 function Object.new(StartValue, LockedType)
     assert(StartValue, "Missing Property: StartValue")
 
-    local VHolder = {}
+    local VHolder, Finalize = Object "Value Holder"
     VHolder.Class = "StatHolder"
     VHolder.Value = StartValue
-    VHolder.Changed = table:GetChangedEvent()
+    VHolder.Changed = table:GetChangedEvent(VHolder)
 
-    function VHolder:Set(NValue)
-        if LockedType and typeof(NValue) == typeof(VHolder.Value) or not LockedType then
-           VHolder.Value = NValue
-        end
-    end
-    VHolder.set = VHolder.Set
+    VHolder:SetChangable("Value", true)
+    VHolder:SetDatatype("Value", LockedType or if type(StartValue) == "table" then 
+        StartValue.__type or typeof(StartValue) 
+    else 
+        typeof(StartValue))
 
-    function VHolder:Get()
-        return VHolder.Value
-    end
-    VHolder.get = VHolder.Get
-
-    local Holder = Objectify(VHolder)
-    Holder:SetChangable("Value", LockedType)
+    Finalize()
     return VHolder
 end
 Object.New = Object.new

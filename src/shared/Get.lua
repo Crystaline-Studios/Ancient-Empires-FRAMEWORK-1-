@@ -18,8 +18,8 @@ return function(Name: String)
 		return ReplicatedStorage.Luagame
 	elseif Name == "QuickSignal" then
 		return ReplicatedStorage.Luagame.LuaObjects.QuickSignal
-	elseif Name == "Objectify" then
-		return ReplicatedStorage.Luagame.Objectify
+	elseif Name == "Object" then
+		return ReplicatedStorage.Luagame.Object
 	elseif Name == "Table" then
 		return ReplicatedStorage.Luagame.Libraries.Table	
 	elseif Name == "table" then

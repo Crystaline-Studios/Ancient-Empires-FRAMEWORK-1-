@@ -6,7 +6,7 @@ local Players = game:GetService("Players")
 local ServerScriptService = game:GetService("ServerScriptService")
 local Get = require(game:GetService("ReplicatedStorage").Get)
 
-local Objectify = require(Get("Objectify"))
+local Object = require(Get("Object"))
 local ProfileService = require(script.Parent.ProfileService)
 local SConfig = require(ServerScriptService.ServerConfig)
 local OSignal = require(Get("QuickSignal"))
@@ -87,7 +87,7 @@ Players.PlayerRemoving:Connect(function(Player)
 end)
 
 ----------------------------->> The Bank <<---------------------------------
-local Bank = {}
+local Bank, Finalize = Object "DataBankService"
 
 function Bank:GetPlayerDataTable(Player)
 	assert(Player, "Missing Parameter: Player")
@@ -99,7 +99,7 @@ function Bank:GetPlayerDataTable(Player)
 end
 
 -- WARNING DO NOT USE
--- USED INTERNALLY.
+-- USED INTERNALLY FOR STUFF LIKE ModerationService
 function Bank:GetPlayerSystemDataTable(Player)
 	assert(Player, "Missing Parameter: Player")
 	if PlayerFrameworkData[Player] ~= nil then
@@ -109,5 +109,5 @@ function Bank:GetPlayerSystemDataTable(Player)
 	end
 end
 
-local Holder = Objectify(Bank)
+Finalize()
 return Bank

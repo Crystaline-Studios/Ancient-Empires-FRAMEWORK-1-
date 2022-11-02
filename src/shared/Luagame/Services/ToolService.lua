@@ -7,7 +7,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Get = require(game:GetService("ReplicatedStorage").Get)
-local Objectify = require(Get("Objectify"))
+local Object = require(Get("Object"))
 local QuickSignal = require(Get("QuickSignal"))
 local RConfig = require(ReplicatedStorage.ReplicatedConfig)
 
@@ -17,8 +17,9 @@ local PlayerTools = {}
 local Config = RConfig.T
 
 ----------------------------->> THE ONLY SERVICE <<---------------------------------
+warn("tool service is not dead??")
 
-local Service = {}
+local Service, Finalize = Object "ToolService"
 
 
 function Service:NewTool(Config)
@@ -55,7 +56,5 @@ function Service:GetTools(Player)
 	return PlayerTools[Player]
 end
 
-
-
-local Holder = Objectify(Service)
+Finalize()
 return Service

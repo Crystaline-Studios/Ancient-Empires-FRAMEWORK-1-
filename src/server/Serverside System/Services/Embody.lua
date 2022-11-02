@@ -7,7 +7,7 @@ local Players = game:GetService("Players")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local Get = require(game:GetService("ReplicatedStorage").Get)
-local Objectify = require(Get("Objectify"))
+local Object = require(Get("Object"))
 local SConfig = require(ServerScriptService.ServerConfig)
 local table = require(Get("table"))
 local ModerationService = require(script.Parent.ModerationService)
@@ -18,7 +18,7 @@ local Config = SConfig.Embody
 
 ----------------------------->> Service <<---------------------------------
 
-local Service = {}
+local Service, Finalize = Object "EmbodyService"
 Service.Class = "EmbodyService"
 
 
@@ -30,8 +30,8 @@ function Service:Respawn(Player)
 		local Root = Character:WaitForChild("HumanoidRootPart")
 		if Config.RespawnMethod == "Random" then
 			ModerationService:SafeMoveTo(Player, table.random(Config.RespawnLocations))
-			
-			
+
+
 		elseif Config.RespawnMethod == "Far" then
 			local Location
 			local Distance
@@ -44,18 +44,18 @@ function Service:Respawn(Player)
 						end
 					end
 				end
-				
+
 				if not Distance or PDistance < Distance then
 					Distance = PDistance
 					Location = SpawnL
 				end
 			end
 			ModerationService:SafeMoveTo(Player, Location)
-			
-			
+
+
 		elseif Config.RespawnMethod == "Team" then
 			if Player.Team ~= nil then
-				local FinalLocation 
+				local FinalLocation
 				local FinalLocationTeamDistance
 				for _,Location in pairs(Config.RespawnLocations) do
 					local TotalTeamDistance = 0
@@ -71,7 +71,7 @@ function Service:Respawn(Player)
 						FinalLocation = Location
 					end
 				end
-				
+
 				if FinalLocationTeamDistance == 0 then
 					ModerationService:SafeMoveTo(Player, table.random(Config.RespawnLocations))
 				else
@@ -80,12 +80,12 @@ function Service:Respawn(Player)
 			else
 				ModerationService:SafeMoveTo(Player, table.random(Config.RespawnLocations))
 			end
-			
-			
-			
+
+
+
 		elseif Config.RespawnMethod == "Friends" then
 			if Player.Team ~= nil then
-				local FinalLocation 
+				local FinalLocation
 				local FinalLocationFriendDistance
 				for _,Location in pairs(Config.RespawnLocations) do
 					local TotalFriendDistance = 0
@@ -110,19 +110,19 @@ function Service:Respawn(Player)
 			else
 				ModerationService:SafeMoveTo(Player, table.random(Config.RespawnLocations))
 			end
-			
+
 		else
 			error("Unknown RespawnMethod read the config in serverscriptservice.")
 		end
-	end)	
+	end)
 end
 Service.respawn = Service.Respawn
 
 Players.PlayerAdded:Connect(function(Player)
 	Player.CharacterAdded:Connect(function(Character)
 		Character.ChildRemoved:Connect(function(Child)
-			if Child.Name == "HumanoidRootPart" and not Config.AllowRootDestroying 
-				or Child.Name == "UpperTorso" and not Config.AllowTorsoDestroying 
+			if Child.Name == "HumanoidRootPart" and not Config.AllowRootDestroying
+				or Child.Name == "UpperTorso" and not Config.AllowTorsoDestroying
 				or Child.Name == "LowerTorso" and not Config.AllowTorsoDestroying
 				or Child.Name == "Head" and not Config.AllowHeadDestroying
 				or Child.Name ~= "Head" and Child.Name ~= "HumanoidRootPart" and Child.Name ~= "LowerTorso"
@@ -145,11 +145,11 @@ Players.PlayerAdded:Connect(function(Player)
 			end
 		end)
 	end)
-	
+
 	if Config.AutoRespawn then
 		Service:Respawn(Player)
 	end
 end)
 
-local Holder = Objectify(Service)
+Finalize()
 return Service

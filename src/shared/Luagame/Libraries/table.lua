@@ -4,12 +4,12 @@
 ----------------------------->> Modules and Services <<---------------------------------
 
 local Get = require(game:GetService("ReplicatedStorage").Get)
-local Objectify = require(Get("Objectify"))
+local Object = require(Get("Object"))
 local Signal = require(Get("QuickSignal"))
 
 ----------------------------->> Library <<---------------------------------
 
-local Library = {}
+local Library, Finalize = Object "Table Library"
 setmetatable(Library, {
 	__index = table
 })
@@ -61,6 +61,14 @@ function Library:WaitForIndex(Table, Index)
 	return Table[Index]
 end
 
+function Library:OnCall(T, F)
+	if getmetatable(T) == nil then
+		setmetatable(T, {__call = F})
+	else
+		getmetatable(T)["__call"] = F
+	end
+end
+
 
 function Library.merge(...)
 	local Tables = {...}
@@ -83,5 +91,5 @@ function Library.Random(T)
 end
 Library.random = Library.Random
 
-Holder = Objectify(Library)
+Finalize()
 return Library

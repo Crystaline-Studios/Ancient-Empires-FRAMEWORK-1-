@@ -4,13 +4,12 @@
 ----------------------------->> Modules and Services <<---------------------------------
 
 local Get = require(game:GetService("ReplicatedStorage").Get)
-local Objectify = require(Get("Objectify"))
-local Signal = require(Get("QuickSignal"))
+local Object = require(Get("Object"))
 
 ----------------------------->> Object <<---------------------------------
 
 
-local Object = {}
+local Object, Finalize = Object "Debounce Creator"
 Object.Class = "ObjectCreator"
 Object.class = Object.Class
 
@@ -19,16 +18,21 @@ Object.class = Object.Class
 
 
 function Object.new()
-	local Debounce = {}
-	local DeSignal = Signal.new()
-	
+	local Debounce, Finalize = Object "Debounce"
+	local DebounceCallbacks = {}
+		
 	Debounce.Class = "Debounce"
 	Debounce.class = Debounce.Class
 	Debounce.OnCooldown = false
 	
 	function Debounce:Wait()
 		if Debounce.OnCooldown then
-			DeSignal:Wait()
+			local Running = coroutine.running()
+			table.insert(DebounceCallbacks, function()
+				coroutine.resume(Running)
+			end)
+
+			coroutine.yield()
 		end
 	end
 	Debounce.wait = Debounce.Wait
@@ -44,7 +48,10 @@ function Object.new()
 						Debounce.OnCooldown = true
 						task.wait(Time)
 						Debounce.OnCooldown = false
-						DeSignal:Fire()
+						for Pos, F in pairs(DebounceCallbacks) do
+							F()
+							DebounceCallbacks[Pos] = nil
+						end
 					end)
 				else
 					warn("Attempted to debounce while its on Debounce if there is a use case of this lmk")
@@ -62,12 +69,12 @@ function Object.new()
 	
 	
 	
-	local Holder = Object(Debounce)
+	Finalize()
 	return Debounce
 end
 Object.New = Object.new
 
 
 
-local Holder = Objectify(Object)
+Finalize()
 return Object

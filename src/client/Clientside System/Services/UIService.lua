@@ -5,27 +5,59 @@ local TweenService = game:GetService("TweenService")
 local LocalPlayer = Players.LocalPlayer
 
 local Get = require(game:GetService("ReplicatedStorage").Get)
-local Objectify = require(Get("Objectify"))
+local Object = require(Get("Object"))
 local QuickSignal = require(Get("QuickSignal"))
 local Table = require(Get("Table"))
 
------------------------------>> Variables <<---------------------------------
-
-local UIHolder = Instance.new("ScreenGui")
+local UIHolders = {}
 
 ----------------------------->> Service <<---------------------------------
 
-local Service = {}
+local Service, Finalize = Object "UIService"
 
-function Service:New()
-    local Frame = Instance.new("Frame", UIHolder)
-    local UI = {}
-    UI.Position = {X = 0, Y = 0}
-    UI.Size = {X = 0, Y = 0}
+function Service:New(Name)
+    assert(Name, "Missing Parameter: Name")
+
+    local ScreenGui = Instance.new("ScreenGui")
+    local Frame = Instance.new("Frame", ScreenGui)
+    Frame.BorderSizePixel = 0
+
+    local UI, Finalize = Object(Name)
+    UIHolders[Name] = UI
+
+    UI.Position = Object {X = 0, Y = 0}
+    UI.Size = Object {X = 0, Y = 0}
+
     UI.Visible = true
+    UI:BindProperty(Frame, "Transparency")
+    UI:BindProperty(Frame, "Enabled", "Visible")
 
-    local FadeToggles = {}
+    UI:SetChangable("Position", true)
+    UI:SetChangable("Size", true)
+    UI:SetChangable("Roundness", true)
+    UI:SetDatatype("Roundness", "Number")
 
+
+    Table:GetChangedEvent(UI.Position):Connect(function()
+        local UPos = UDim2.new(UI.Size.X,0,UI.Size.Y,0)
+        Frame.Position = UPos
+        Frame.AnchorPoint = UPos
+    end)
+    Table:GetChangedEvent(UI.Size):Connect(function()
+        UI.Size = UDim2.new(UI.Size.X,0,UI.Size.Y,0)
+    end)
+
+    Table:GetChangedEvent(UI):Connect(function(Index, NewValue)
+        if Index == "Roundness" then
+            if not Frame:FindFirstChild("UICorner") then
+                Instance.new("UICorner", Frame)
+            end
+
+            Frame.UICorner.CornerRadius = UDim.new(0, NewValue)
+        end
+    end)
+
+    ------------ Functions --------------
 
     function UI:GlideOut(Side, Speed)
         assert(Side, "Missing Parameter: Side")
@@ -102,41 +134,46 @@ function Service:New()
         assert(IsFading, "Missing Parameter: IsFading")
 
         if IsFading then
-            UI.Visible = false
             while Frame.BackgroundTransparency ~= 1 do
                Frame.BackgroundTransparency += FadeSize
                task.wait(Speed) 
             end
 
-            for _,Descendant in pairs(Frame:GetDescendants()) do
-                if Descendant:GetPropertyChangedSignal("Visible") then
-                    FadeToggles[Descendant] = Descendant.Visible
-                    Descendant.Visible = false
-                end
-            end
-
+            UI.Visible = false
         else
-            UI.Visible = true
             while Frame.BackgroundTransparency ~= 0 do
                 Frame.BackgroundTransparency -= FadeSize
                 task.wait(Speed) 
             end
 
-            for _,Descendant in pairs(Frame:GetDescendants()) do
-                if Descendant:GetPropertyChangedSignal("Visible") then
-                    Descendant.Visible = FadeToggles[Descendant] or true
-                end
-            end
+            UI.Visible = true
         end
     end
 
-    function UI:Button()
-        local Button = {}
+    function UI:Button(Name)
+        local Button, Finalize = Object(Name)
         Button.Position = {X = 0, Y = 0}
         Button.Size = {X = 0, Y = 0}
-        Button.Bold = false
+
+        UI:SetChangable("Position", true)
+        UI:SetChangable("Size", true)
+        UI:SetChangable("Roundness", true)
+        UI:SetDatatype("Roundness", "number")
 
         local ButtonInstance = Instance.new("TextButton")
+        ButtonInstance.BorderSizePixel = 0 
+        ButtonInstance.Name = Name or "Button"
+
+        UI:BindProperty(ButtonInstance, "BackgroundTransparency", "Transparency")
+        UI:BindProperty(ButtonInstance, "Text")
+        UI:BindProperty(ButtonInstance, "BackgroundColor3", "Color")
+
+        local ImageLabel = Instance.new("ImageLabel")
+        ImageLabel.Size = UDim2.new(1,0,1,0)
+        ImageLabel.BackgroundTransparency = 1
+
+        UI:BindProperty(ImageLabel, "Image")
+        
 
         Button.OnLeftClick = QuickSignal:Quickify(ButtonInstance.MouseButton1Click)
         Button.OnRightClick = QuickSignal:Quickify(ButtonInstance.MouseButton2Click)
@@ -151,17 +188,23 @@ function Service:New()
             ButtonInstance.Size = UDim2.new(Button.Size.X,0,Button.Size.Y,0)
         end)
 
-        ------- UserInterface Button ---------
 
-        Table:GetChangedEvent(Button):Connect(function()
-            
+        ----- Button Table Connection --------
+        Table:GetChangedEvent(Button):Connect(function(Index, NewValue)
+            if Index == "Roundness" then
+                if not ButtonInstance:FindFirstChild("UICorner") then
+                    Instance.new("UICorner", ButtonInstance)
+                end
+
+                ButtonInstance.UICorner.CornerRadius = UDim.new(0, NewValue)
+            end
         end)
 
 
-        local Holder = Objectify(Button)
-        Holder:BindToProperty(ButtonInstance, "BackgroundTransparency", "Transparency")
-        Holder:BindToProperty(ButtonInstance, "Text")
-        Holder:BindToProperty(ButtonInstance, "BackgroundColor3", "Color3")
+        ImageLabel.Parent = ButtonInstance
+        ButtonInstance.Parent = Frame
+
+        Finalize()
         return Button
     end
 
@@ -173,10 +216,13 @@ function Service:New()
         
     end
 
-    local Holder = Objectify(UI)
-    Holder:BindToProperty(Frame, "Transparency")
-    return UI
+    Finalize()
+    return UI, ScreenGui
 end
 
-local Holder = Objectify(Service)
+function Service:GetUI(Name)
+    return UIHolders[Name]
+end
+
+Finalize()
 return Service

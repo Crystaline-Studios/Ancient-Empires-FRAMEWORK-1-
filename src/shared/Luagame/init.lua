@@ -12,7 +12,7 @@ local LocalPlayer = Players.LocalPlayer
 local LocalPlayerScripts; if LocalPlayer then LocalPlayerScripts = LocalPlayer.PlayerScripts end
 
 local Get = require(game:GetService("ReplicatedStorage").Get)
-local Objectify = require(Get("Objectify"))
+local Object = require(Get("Object"))
 local QuickSignal = require(Get("QuickSignal"))
 
 ----------------------------->> Variables <<---------------------------------
@@ -30,7 +30,11 @@ local ServiceAdded = QuickSignal.new()
 ----------------------------->> Object <<---------------------------------
 
 
-local Luagame = setmetatable({}, {
+local Luagame, Finalize = Object "Luagame"
+Luagame.Class = "Engine"
+Luagame.ServiceAdded = ServiceAdded
+
+setmetatable(Luagame, {
     __index = function(Index)
         if rawget(Services, Index) == nil then
             if game:GetService(Index) then
@@ -50,8 +54,6 @@ local Luagame = setmetatable({}, {
         end
     end
 })
-Luagame.Class = "Engine"
-Luagame.ServiceAdded = ServiceAdded
 
 
 ------------- Services Loader
@@ -208,6 +210,5 @@ function Luagame:ReleaseFolderDeep(Folder)
 	end
 end
 
-
-local Holder = Objectify(Luagame)
+Finalize()
 return Luagame

@@ -3,25 +3,29 @@
 ----------------------------->> Services and Modules <<---------------------------------
 
 local Get = require(game:GetService("ReplicatedStorage").Get)
-local Objectify = require(Get("Objectify"))
+local Object = require(Get("Object"))
 
 ----------------------------->> Object <<---------------------------------
 
 
-local Object = {}
+local Object, Finalize = Object "QuickSignal Creator"
 Object.Class = 'ObjectCreator'
 Object.class = Object.Class
 
 
 
 function Object.new()
-	local Signal = {}
+	local Signal, Finalize = Object "QuickSignal"
 	
 	Signal.Class = "QuickSignal"
 	Signal.class = Signal.Class
 	Signal.Connections = {}
 	Signal.Once = {}
 	Signal.SystemConnections = {}
+
+	Signal:SetReadable("Connections", false)
+	Signal:SetReadable("Once", false)
+	Signal:SetReadable("SystemConnections", false)
 	
 	
 	
@@ -57,7 +61,8 @@ function Object.new()
 	
 	function Signal:Connect(f)
 		table.insert(self.Connections, f)
-		local Connection = {}
+
+		local Connection, Finalize = Object "Signal Connection"
 		Connection.Class = "QuickSignalConnection"
 		Connection.class = Connection.Class
 		
@@ -75,7 +80,7 @@ function Object.new()
 		end
 		Connection.reconnect = Connection.Reconnect
 		
-		local Holder = Objectify(Connection)
+		Finalize()
 		return Connection
 	end
 	Signal.connect = Signal.Connect
@@ -83,7 +88,8 @@ function Object.new()
 	
 	function Signal:ConnectOnce(f)
 		table.insert(self.Once, f)
-		local Connection = {}
+
+		local Connection, Finalize = Object "Signal Connection"
 		Connection.Class = "QuickSignalConnection"
 		Connection.class = Connection.Class
 
@@ -101,7 +107,7 @@ function Object.new()
 		end
 		Connection.reconnect = Connection.Reconnect
 		
-		local Holder = Objectify(Connection)
+		Finalize()
 		return Connection
 	end
 	Signal.connectonce = Signal.ConnectOnce
@@ -169,7 +175,6 @@ function Object.new()
 			end)
 			table.insert(Connections, Connection)
 		end
-		
 	end
 	Signal.wrap = Signal.Wrap
 	
@@ -185,10 +190,7 @@ function Object.new()
 	
 	
 	
-	local Holder = Objectify(Signal)
-	Holder:SetHidden("Connections")
-	Holder:SetHidden("Once")
-	Holder:SetHidden("SystemConnections")
+	Finalize()
 	return Signal
 end
 Object.New = Object.new
@@ -199,5 +201,4 @@ function Object:Quickify(RBXSignal)
 	return Signal
 end
 
-local Holder = Objectify(Object)
 return Object

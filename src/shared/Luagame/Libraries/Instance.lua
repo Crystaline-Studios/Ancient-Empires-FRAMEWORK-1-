@@ -10,11 +10,11 @@ local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 local LocalPlayerScripts = if LocalPlayer then LocalPlayer.PlayerScripts else nil
 local Get = require(game:GetService("ReplicatedStorage").Get)
-local Objectify = require(Get("Objectify"))
+local Object = require(Get("Object"))
 
 ----------------------------->> Library <<---------------------------------
 
-local Library = {}
+local Library, Finalize = Object "InstanceLibrary"
 Library.Class = "InstanceLibrary"
 
 function Library.New(Index, ...)
@@ -60,5 +60,5 @@ function Library.New(Index, ...)
 	end
 end
 
-local Holder = Objectify(Library)
+Finalize()
 return Library
