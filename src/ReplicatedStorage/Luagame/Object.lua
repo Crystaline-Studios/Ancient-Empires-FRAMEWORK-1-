@@ -4,12 +4,26 @@
 ----------------------------->> Services and Modules <<---------------------------------
 
 local Get = require(game:GetService("ReplicatedStorage").Get)
-local Table = require(Get("Table"))
+local Table = require(Get("Table")) 
 local Signal = require(Get("QuickSignal"))
 
 ----------------------------->> Objectify <<---------------------------------
 
-function Object(Name, Table)
+local function Type(Value)
+	local Types = {typeof(Value)}
+	if Type == "table" then
+		if Value.Class then
+			table.insert(Types, Value.Class)
+		end
+		if Value.__type then
+			table.insert(Types, Value.__type)
+		end
+	end
+
+	return Types
+end
+
+function ObjectF(Name, Table)
 	assert(Name, "Missing First Parameter: Put a string as name or a table and that would set it to be the Object")
 
 	local Object = Table or {Name = Name}
@@ -55,22 +69,46 @@ function Object(Name, Table)
 		else 
 			{Type}
 	end
-
-	function Object:Subtable(Index, Table, Datatype, Function)
-		local SubObject, Finalize = Object "Subtable", Table
-		Object:SetChangable(Index, true)
-		Object:SetDatatype(Index, Datatype)
-		Object[Index] = SubObject
-
-		local OnChange = Signal.new()
-
-		Table:GetIndexChangedEvent(Object, Index):Connect(function(Value, OldValue)
-			OnChange:Fire()
-		end)
-		Finalize()
-	end
 	function Object:Property(Index, Value, Datatype, Function)
+		assert(Index, "Missing Parameter: Index")
+		assert(Value, "Missing Parameter: Value")
+		assert(Datatype, "Missing Parameter Datatype")
 
+		Object[Index] = Value
+		Object:SetDatatype(Datatype)
+		if Function then
+			local OnTChange = Table:GetIndexChangedEvent(Object, Index)
+			local OnChange = Signal.new()
+			local Connections = {}
+			OnTChange:Connect(function(NewValue)
+				if type(NewValue) == "table" then
+					local function ValueIsIn(T, V)
+						local Indexes = {}
+						local function Loop(T)
+							for _,V in pairs(T) do
+								table.insert(Indexes, V)
+								if type(V) == "table" then
+									Loop(V)
+								end
+							end
+						end
+
+						if table.find(Indexes, V) then
+							return true
+						else
+							return false
+						end
+					end
+
+					for _,t in ipairs(NewValue) do
+						if t == "table" then
+							
+						end
+					end
+				end
+				OnChange:Fire()
+			end)
+		end
 	end
 
 
@@ -120,11 +158,7 @@ function Object(Name, Table)
 					end
 				end
 			else
-				local Types = {Type}
-				if Type == "table" then
-					table.insert(Types, NewValue.Class)
-					table.insert(Types, NewValue.__type)
-				end
+				local Types = Type(Type)
 
 				local MatchFound
 				for _,Type in pairs(DataType) do
@@ -183,7 +217,7 @@ function Object(Name, Table)
 		end
 	end
 end
-return Object
+return ObjectF
 
 -- Old Version for safe keeping
 --[[

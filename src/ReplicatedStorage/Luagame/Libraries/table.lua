@@ -74,6 +74,20 @@ function Library:GetIndexChangedEvent(Table, Index)
 	return Meta.__IndexChangedEvents[Index]
 end
 
+function Library:GetIndexes(T)
+	local Indexes = {}
+	local function Loop(T)
+		for _,V in pairs(T) do
+			table.insert(Indexes, V)
+			if type(V) == "table" then
+				Loop(V)
+			end
+		end
+	end
+
+	return Indexes
+end
+
 function Library:WaitForIndex(Table, Index)
 	local Changed = Library:GetChangedEvent(Table)
 	Changed:WaitWithCheck(function(NIndex, Value)
