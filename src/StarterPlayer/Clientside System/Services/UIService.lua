@@ -15,28 +15,37 @@ local UIHolders = {}
 
 local Service, Finalize = Object "UIService"
 
-function Service:New(Name)
+function Service:New(Name, Parent)
     assert(Name, "Missing Parameter: Name")
 
-    local ScreenGui = Instance.new("ScreenGui")
-    local Frame = Instance.new("Frame", ScreenGui)
+    local ScreenGui; if not Parent then
+        ScreenGui = Instance.new("ScreenGui")
+    end
+    
+    local Frame = Instance.new("Frame", Parent or ScreenGui)
     Frame.BorderSizePixel = 0
 
     local UI, Finalize = Object(Name)
     UIHolders[Name] = UI
 
-    UI.Position = Object {X = 0, Y = 0}
-    UI.Size = Object {X = 0, Y = 0}
-
+    UI.Position = {X = 0, Y = 0}
+    UI.Size = {X = 0, Y = 0}
+    UI.Padding = {X = 0, Y = 0}
+    UI.CellSize = {X = 0, Y = 0}
+    UI.Roundness = 0
+    UI.HorizontalGridPosition = "Center"
     UI.Visible = true
+
     UI:BindProperty(Frame, "Transparency")
     UI:BindProperty(Frame, "Enabled", "Visible")
 
-    UI:SetChangable("Position", true)
-    UI:SetChangable("Size", true)
+    UI:SetChangable("VerticalGridPosition", true)
+    UI:SetChangable("HorizontalGridPosition", true)
     UI:SetChangable("Roundness", true)
-    UI:SetDatatype("Roundness", "Number")
 
+    UI:SetDatatype("Roundness", "number")
+    UI:SetDatatype("HorizontalGridPosition", {"Center", "Left", "Right"})
+    UI:SetDatatype("VerticalGridPosition", {"Center", "Bottom", "Top"})
 
     Table:GetChangedEvent(UI.Position):Connect(function()
         local UPos = UDim2.new(UI.Size.X,0,UI.Size.Y,0)
@@ -47,6 +56,7 @@ function Service:New(Name)
         UI.Size = UDim2.new(UI.Size.X,0,UI.Size.Y,0)
     end)
     
+    
     Table:GetChangedEvent(UI):Connect(function(Index, NewValue)
         if Index == "Roundness" then
             if not Frame:FindFirstChild("UICorner") then
@@ -54,6 +64,61 @@ function Service:New(Name)
             end
 
             Frame.UICorner.CornerRadius = UDim.new(0, NewValue)
+
+
+
+        elseif Index == "GridEnabled" then
+            local Grid = Frame:FindFirstChild("Grid")
+            if NewValue then
+                if not Grid then
+                    local Grid = Instance.new("UI" .. UI.GridType .. "Layout")
+                    Grid.Name = "Grid"
+
+                    Grid.FillDirection = Enum.FillDirection[UI.FillDirection]
+                    Grid.SortOrder = Enum.SortOrder.LayoutOrder
+                    Grid.HorizontalAlignment = Enum.HorizontalAlignment[UI.HorizontalGridPosition]
+                    Grid.VerticalAlignment = Enum.VerticalAlignment[UI.VerticalGridPosition]
+
+                    if Grid:IsA("UITableLayout") then
+                        Grid.Padding = UDim2.new(0, UI.Padding.X, 0, UI.Padding.Y)
+                    elseif Grid:IsA("UIListLayout") then
+                        Grid.Padding = UDim.new(0, UI.Padding.X)
+                    elseif Grid:IsA("UIGridLayout") then
+                        Grid.CellPadding = UDim2.new(0, UI.Padding.X, 0, UI.Padding.Y)
+                        Grid.CellSize = UDim2.new(0, UI.CellSize.X, 0, UI.CellSize.Y)
+                    end
+
+                end
+            else
+                if Grid then
+                    Grid:Destroy()
+                end
+            end
+
+
+
+
+        elseif Index == "FillDirection" then
+            local Grid = Frame:FindFirstChild("Grid")
+            if Grid then
+                Grid.FillDirection = Enum.FillDirection[UI.FillDirection]
+            end
+
+
+
+        elseif Index == "HorizontalGridPosition" then
+            local Grid = Frame:FindFirstChild("Grid")
+            if Grid then
+                Grid.HorizontalAlignment = Enum.HorizontalAlignment[UI.HorizontalGridPosition]
+            end
+
+
+        elseif Index == "VerticalGridPosition" then
+            local Grid = Frame:FindFirstChild("Grid")
+            if Grid then
+                Grid.VerticalGridPosition = Enum.VerticalAlignment[UI.VerticalGridPosition]
+            end
+
         end
     end)
 
@@ -90,7 +155,7 @@ function Service:New(Name)
 
         local Tween = TweenService:Create(Frame, TInfo, Direction)
         Tween:Play()
-        UI:Fade(false, 0, 0)
+        UI:Fade(true, 0, 0)
     end
 
     function UI:GlideIn(Side, Speed)
@@ -214,6 +279,10 @@ function Service:New(Name)
 
     function UI:Label()
         
+    end
+
+    function UI:Frame(Name)
+        return Service:New(Name, Frame)
     end
 
     Finalize()

@@ -5,13 +5,17 @@
 
 local Get = require(game:GetService("ReplicatedStorage").Get)
 local Table = require(Get("Table"))
+local Signal = require(Get("QuickSignal"))
 
 ----------------------------->> Objectify <<---------------------------------
 
-return function(Name)
+function Object(Name, Table)
 	assert(Name, "Missing First Parameter: Put a string as name or a table and that would set it to be the Object")
 
-	local Object = if type(Name) ~= "table" then {Name = Name} else Name
+	local Object = Table or {Name = Name}
+	if not Object.Name then
+		Object.Name = Name
+	end
 	local Data = {}
 	local Meta = {}
 
@@ -46,9 +50,28 @@ return function(Name)
 			Data[Index] = {}
 		end
 
-		Data[Index].Type = Type
+		Data[Index].Type = if type(Type) == "table" then 
+			Type 
+		else 
+			{Type}
 	end
 
+	function Object:Subtable(Index, Table, Datatype, Function)
+		local SubObject, Finalize = Object "Subtable", Table
+		Object:SetChangable(Index, true)
+		Object:SetDatatype(Index, Datatype)
+		Object[Index] = SubObject
+
+		local OnChange = Signal.new()
+
+		Table:GetIndexChangedEvent(Object, Index):Connect(function(Value, OldValue)
+			OnChange:Fire()
+		end)
+		Finalize()
+	end
+	function Object:Property(Index, Value, Datatype, Function)
+
+	end
 
 
 	function Object:BindProperty(Source, PropertyName, Name)
@@ -86,7 +109,7 @@ return function(Name)
 		local DataType = SData.Type
 
 		if SData and SData.Changable then
-			if not SData.Type then
+			if not DataType then
 				if BindSource then
 					SData.BindedTo[BindProperty] = NewValue
 				else
@@ -96,33 +119,46 @@ return function(Name)
 						OldNewIndexFunction(Index, NewValue, ...)
 					end
 				end
-			end
-		else
-			if DataType == Type or Type == "Table" and Type.__type == DataType then
-				if BindSource then
-					BindSource[BindProperty] = NewValue
-				else
-					if not OldNewIndexFunction then
-						Object[Index] = NewValue
-					else
-						OldNewIndexFunction(Index, NewValue, ...)
+			else
+				local Types = {Type}
+				if Type == "table" then
+					table.insert(Types, NewValue.Class)
+					table.insert(Types, NewValue.__type)
+				end
+
+				local MatchFound
+				for _,Type in pairs(DataType) do
+					for _,LType in pairs(Types) do
+						if LType == Type then
+							MatchFound = true
+							break
+						end
 					end
 				end
-			else
-				local Type = if Type == "Table" then 
-					Type.__type or Type.Class or Type 
-				else 
-					Type
 
-				error("Incorrect Type. " .. DataType .. " Was Expected Got" .. Type)
+				if MatchFound then
+					if BindSource then
+						SData.BindedTo[BindProperty] = NewValue
+					else
+						if not OldNewIndexFunction then
+							Object[Index] = NewValue
+						else
+							OldNewIndexFunction(Index, NewValue, ...)
+						end
+					end
+				else
+					error("Attempted to change '" .. Object.Name or Object.Class "' to incorrect type")
+				end
 			end
+		else
+			error("Attempted to Set and failed this property is likely nonchangable")
 		end
-
-		error("Attempted to Set and failed this property is likely nonchangable")
 	end
 
 
 	if type(Name) == "table" then
+		Object.Class = "Object"
+
 		if getmetatable(Object) then
 			local OldMeta = getmetatable(Object)
 			OldNewIndexFunction = OldMeta.__newindex
@@ -147,7 +183,7 @@ return function(Name)
 		end
 	end
 end
-
+return Object
 
 -- Old Version for safe keeping
 --[[

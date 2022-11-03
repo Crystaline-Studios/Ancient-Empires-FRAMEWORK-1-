@@ -22,33 +22,56 @@ Library.class = Library.Class
 function Library:GetChangedEvent(Table)
 	local Metatable = getmetatable(Table)
 	
-	if Metatable.__ChangedEvent then
-		return Metatable.__ChangedEvent
-	else
-		local Meta = {
-			__ChangedEvent = Signal.new(),
-			
-			__newindex = function(Index,Value)
-				local OldValue = rawget(Table, Index, Value)
-				if Metatable and Metatable.__newindex then
-					if typeof(Metatable.__newindex) == "function" then
-						Metatable.__newindex(Index,Value)
-						if rawget(Table, Index) == Value and rawget(Table, Index) ~= OldValue then
-							Metatable.__ChangedEvent:Fire(Index,Value,OldValue)
+	if Metatable and not Metatable.__ChangedEvent or not Metatable then
+		local Meta = {}
+		
+		Meta.__ChangedEvent = Signal.new()
+		Meta.__IndexChangedEvents = {}
+
+		function Meta:__newindex(Index, Value)
+			local OldValue = rawget(Table, Index)
+
+			if Metatable and Metatable.__newindex then
+				if typeof(Metatable.__newindex) == "function" then
+					Metatable.__newindex(Index,Value)
+					local CurrentValue = rawget(Table, Index)
+
+					if CurrentValue == Value and rawget(Table, Index) ~= OldValue then
+						Meta.__ChangedEvent:Fire(Index, Value, OldValue)
+
+						if Meta.__IndexChangedEvents[Index] then
+							Meta.__IndexChangedEvents[Index]:Fire(Value, OldValue)
 						end
-					else
-						error("Unknown Type in newindex")
 					end
 				else
-					rawset(Table, Index, Value)
-					if rawget(Table, Index) == Value and rawget(Table, Index) ~= OldValue then
-						Metatable.__ChangedEvent:Fire(Index,Value,OldValue)
+					error("Unknown Type in newindex")
+				end
+			else
+				rawset(Table, Index, Value)
+				if rawget(Table, Index) == Value and rawget(Table, Index) ~= OldValue then
+					Meta.__ChangedEvent:Fire(Index,Value,OldValue)
+
+					if Meta.__IndexChangedEvents[Index] then
+						Meta.__IndexChangedEvents[Index]:Fire(Value, OldValue)
 					end
 				end
-			end,
-		}	
+			end
+		end
 		setmetatable(Table, Meta)
 	end
+
+	return getmetatable(Table).__ChangedEvent
+end
+
+function Library:GetIndexChangedEvent(Table, Index)
+	Library:GetChangedEvent(Table)
+	local Meta = getmetatable(Table)
+
+	if not Meta.__IndexChangedEvents[Index] then
+		Meta.__IndexChangedEvents[Index] = Signal.new()
+	end
+
+	return Meta.__IndexChangedEvents[Index]
 end
 
 function Library:WaitForIndex(Table, Index)
