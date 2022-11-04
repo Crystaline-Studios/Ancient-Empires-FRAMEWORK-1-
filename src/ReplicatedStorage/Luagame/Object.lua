@@ -82,27 +82,13 @@ function ObjectF(Name, Table)
 			local Connections = {}
 			OnTChange:Connect(function(NewValue)
 				if type(NewValue) == "table" then
-					local function ValueIsIn(T, V)
-						local Indexes = {}
-						local function Loop(T)
-							for _,V in pairs(T) do
-								table.insert(Indexes, V)
-								if type(V) == "table" then
-									Loop(V)
-								end
-							end
-						end
-
-						if table.find(Indexes, V) then
-							return true
-						else
-							return false
-						end
-					end
-
-					for _,t in ipairs(NewValue) do
-						if t == "table" then
+					local Indexes = Table:GetIndexes(NewValue)
+					for Pos, Connection in pairs(Connections) do
+						if table.find(Indexes, Pos) then
 							
+						else
+							Connection:Disconnect()
+							Indexes[Pos] = nil
 						end
 					end
 				end

@@ -88,6 +88,25 @@ function Library:GetIndexes(T)
 	return Indexes
 end
 
+function Library:ValueIsWithin(T,V)
+	local Indexes = {}
+	local function Loop(T)
+		for _,V in pairs(T) do
+			table.insert(Indexes, V)
+			if type(V) == "table" then
+				Loop(V)
+			end
+		end
+	end
+	Loop(T)
+
+	if table.find(Indexes, V) then
+		return true
+	else
+		return false
+	end
+end
+
 function Library:WaitForIndex(Table, Index)
 	local Changed = Library:GetChangedEvent(Table)
 	Changed:WaitWithCheck(function(NIndex, Value)

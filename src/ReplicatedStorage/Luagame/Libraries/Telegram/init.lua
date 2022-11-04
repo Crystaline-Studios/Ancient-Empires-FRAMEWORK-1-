@@ -28,6 +28,8 @@ local ConnectionsToID = {}
 local Connections = {}
 local IDTypes = {}
 
+local SendQueue = {}
+
 ----------------------------->> Object <<---------------------------------
 
 local Telegram, Finalize = Object "Telegram"
@@ -74,7 +76,7 @@ end
 
 function Telegram:Send(ID, Location, ...)
 	if IsClient then
-		Remote:FireServer(ID, Location, ...)
+		table.insert(SendQueue, {ID, Location, ...})
 	else
 		local LocationType = typeof(Location)
 		local IsSent = false
