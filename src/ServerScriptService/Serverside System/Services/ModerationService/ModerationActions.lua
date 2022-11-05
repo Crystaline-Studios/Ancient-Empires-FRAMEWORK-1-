@@ -3,11 +3,8 @@
 ----------------------------->> Services and Modules <<---------------------------------
 
 local Players = game:GetService("Players")
-local MessagingService = game:GetService("MessagingService")
-local ServerScriptService = game:GetService("ServerScriptService")
 
 local DataBank = require(script.Parent.Parent.Databank)
-local SConfig = require(ServerScriptService.ServerConfig)
 
 ----------------------------->> All of the Variables! <<---------------------------------
 
@@ -15,9 +12,7 @@ local ServerBans = {}
 Players.PlayerAdded:Connect(function(Player)
 	local Data = DataBank:GetPlayerSystemDataTable(Player.UserId)
 
-	if Data.Ban == true then
-		Player:Kick(Data.BanReason)
-	elseif Data.Ban and Data.Ban > os.Time() then
+	if Data.Ban == true or Data.Ban and Data.Ban > os.time() then
 		Player:Kick(Data.BanReason)
 	end
 

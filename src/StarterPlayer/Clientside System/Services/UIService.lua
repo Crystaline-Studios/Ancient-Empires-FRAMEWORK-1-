@@ -1,8 +1,6 @@
 
 ----------------------------->> Services and Modules <<---------------------------------
-local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
-local LocalPlayer = Players.LocalPlayer
 
 local Get = require(game:GetService("ReplicatedStorage").Get)
 local Object = require(Get("Object"))
@@ -22,7 +20,8 @@ function Service:New(Name, Parent)
         ScreenGui = Instance.new("ScreenGui")
     end
     
-    local Frame = Instance.new("Frame", Parent or ScreenGui)
+    local Frame = Instance.new("Frame")
+    Frame.Parent = Parent or ScreenGui
     Frame.BorderSizePixel = 0
 
     local UI, Finalize = Object(Name)

@@ -4,13 +4,11 @@
 
 ----------------------------->> Modules and Services <<---------------------------------
 
-local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 
 local Get = require(ReplicatedStorage.Get)
 local Object = require(Get("Object"))
-local OSignal = require(Get("QuickSignal"))
 
 ----------------------------->> Assets and Variables <<---------------------------------
 
@@ -35,8 +33,8 @@ UserInputService.InputBegan:Connect(function(Input, IsGameProccessed)
 	for Key, TInput in pairs(AllInputEvents) do
 		if string.match(Key, Input.KeyCode.Name) then
 			local IsHolding = true
-			for _,Input in pairs(TInput) do
-				if not UserInputService:IsKeyDown(Input) then
+			for _,SInput in pairs(TInput) do
+				if not UserInputService:IsKeyDown(SInput) then
 					IsHolding = false
 				end
 			end
@@ -51,8 +49,8 @@ UserInputService.InputBegan:Connect(function(Input, IsGameProccessed)
 		for Key, TInput in pairs(AllInputGameEvents) do
 			if string.match(Key, Input.KeyCode.Name) then
 				local IsHolding = true
-				for _,Input in pairs(TInput) do
-					if not UserInputService:IsKeyDown(Input) then
+				for _,SInput in pairs(TInput) do
+					if not UserInputService:IsKeyDown(SInput) then
 						IsHolding = false
 					end
 				end
@@ -69,8 +67,8 @@ UserInputService.InputEnded:Connect(function(Input, IsGameProccessed)
 	for Key, TInput in pairs(InputEndEvents) do
 		if string.match(Key, Input.KeyCode.Name) then
 			local IsHolding = true
-			for _,Input in pairs(TInput) do
-				if not UserInputService:IsKeyDown(Input) then
+			for _,SInput in pairs(TInput) do
+				if not UserInputService:IsKeyDown(SInput) then
 					IsHolding = false
 				end
 			end
@@ -85,8 +83,8 @@ UserInputService.InputEnded:Connect(function(Input, IsGameProccessed)
 		for Key, TInput in pairs(InputEndGameEvents) do
 			if string.match(Key, Input.KeyCode.Name) then
 				local IsHolding = true
-				for _,Input in pairs(TInput) do
-					if not UserInputService:IsKeyDown(Input) then
+				for _,SInput in pairs(TInput) do
+					if not UserInputService:IsKeyDown(SInput) then
 						IsHolding = false
 					end
 				end

@@ -3,12 +3,28 @@
 local Config = {}
 
 Config.ModerationService = {
-	DistanceThreshold = 5, -- Extra Distance threshold for Laggy players. (walkspeed is equal to studs per second from player)
-	NoclipThreshold = 0.5, -- Distance threshold For laggy players.
-	AllowVoidStanding = false, -- If the player can be above void at all it.
 
-	DoMaxActionDetection = true, -- Enables player being attacked by anticheat when it triggers it too often
-	ActionsPerMinuteCap = 5 -- How many times can the player trigger the anticheat before being kicked per minute.
+	--------- Basic Exploits
+	MagnitudeCheck = true, -- Should it track the players magnitude and see if it goes over a threshold (walkspeed + threshold)
+	MagnitudeThreshold = 2, -- The threshold for magnitude checking
+
+	NoclipCheck = true, -- Should it track if the player travels through parts that they should not be able to
+
+	FlightCheck = true, -- Should it check if the player is flying
+	FlightThreshold = 2, -- The threshold for flying falling speed
+
+	------- Non Movement Explois
+	GodmodeCheck = true, -- Should it try preventing godmode? (Triggered by humanoid of player being destroyed)
+	AllowRootDestruction = false, -- Should it prevent deletion of rootpart
+
+	------ Player Anticheat Settings
+	Whitelisted = {
+		-- Input any usernames of users you want to make the anticheat not apply to.
+	},
+
+	Blacklisted = {
+		-- Input any usernames of users you want to make UNABLE to play.
+	},
 }
 
 Config.Databank = {

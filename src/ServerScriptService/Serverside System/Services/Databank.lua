@@ -9,14 +9,12 @@ local Get = require(game:GetService("ReplicatedStorage").Get)
 local Object = require(Get("Object"))
 local ProfileService = require(script.Parent.ProfileService)
 local SConfig = require(ServerScriptService.ServerConfig)
-local OSignal = require(Get("QuickSignal"))
 local table = require(Get("table", "Libraries"))
 
 ----------------------------->> Tables / Variables / Misc <<---------------------------------
 
 local Config = SConfig.Databank
 
-local Vaults = {}
 local PlayerVaults = {}
 local PlayerData = {}
 local PlayerFrameworkData = {}
@@ -79,8 +77,7 @@ Players.PlayerRemoving:Connect(function(Player)
 		PlayerData[Player] = nil
 	end
 	
-	local Profile = PlayerFrameworkData[Player]
-	if Profile ~= nil then
+	if PlayerFrameworkData[Player] ~= nil then
 		Profile:Release()
 		PlayerFrameworkData[Player] = nil
 	end

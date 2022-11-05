@@ -24,5 +24,7 @@ return function(Name: String)
 		return ReplicatedStorage.Luagame.Libraries.Table	
 	elseif Name == "table" then
 		return ReplicatedStorage.Luagame.Libraries.Table
+	elseif Name == "SConfig" then
+		return ServerScriptService.ServerConfig
 	end
 end

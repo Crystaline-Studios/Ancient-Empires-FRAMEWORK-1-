@@ -3,9 +3,9 @@
 
 ----------------------------->> Modules / Services / Nonchanging Assets <<---------------------------------
 
+local Workspace = game:GetService("Workspace")
 local Players = game:GetService("Players")
 local ServerScriptService = game:GetService("ServerScriptService")
-local Workspace = game:GetService("Workspace")
 
 ----------------------------->> Assets / Variables / Everything Else <<---------------------------------
 
@@ -106,7 +106,9 @@ Players.PlayerAdded:Connect(function(Player)
 
             ---------- Location 
             local Distance = (LastData.Position - Root.Position).Magnitude
-            local MaxDistance = Humanoid.WalkSpeed + Config.DistanceThreshold; MaxDistance /= 4
+            local MaxDistance = Humanoid.WalkSpeed + Config.DistanceThreshold
+            MaxDistance /= 4
+
             if Distance > MaxDistance then
                 Humanoid.Sit = false
 
@@ -141,7 +143,7 @@ Players.PlayerAdded:Connect(function(Player)
             local CastB = workspace:Raycast(Root.Position, CFrame.lookAt(Root.Position, LastData.Position).LookVector, Params)
 
             if CastA.Material and CastB.Material then
-                local Distance = (CastA.Position - CastB.Position).Magnitude
+                Distance = (CastA.Position - CastB.Position).Magnitude
                 if Distance > Config.NoclipThreshold then
                     Humanoid.Sit = false
 
@@ -190,7 +192,9 @@ function Service:SafeMoveTo(Player, Location)
 
     if Player.Character then
         Player.Character:WaitForChild("Humanoid").Sit = false
-        Player.Character:WaitForChild("HumanoidRootPart"); Player.Character:MoveTo(Location)
+        Player.Character:WaitForChild("HumanoidRootPart")
+
+        Player.Character:MoveTo(Location)
         table.insert(Player, {
             IsGrounded = true,
             FloorDistance = 0,
