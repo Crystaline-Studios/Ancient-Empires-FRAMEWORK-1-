@@ -24,6 +24,7 @@ Service.Class = "EmbodyService"
 function Service:Respawn(Player)
 	assert(Player, "Missing Parameter: Player")
 	Player:LoadCharacter()
+
 	local Character = Player.Character or Player.CharacterAdded:Wait()
 	task.spawn(function()
 		local Root = Character:WaitForChild("HumanoidRootPart")
@@ -119,21 +120,6 @@ Service.respawn = Service.Respawn
 
 Players.PlayerAdded:Connect(function(Player)
 	Player.CharacterAdded:Connect(function(Character)
-		Character.ChildRemoved:Connect(function(Child)
-			if Child.Name == "HumanoidRootPart" and not Config.AllowRootDestroying
-				or Child.Name == "UpperTorso" and not Config.AllowTorsoDestroying
-				or Child.Name == "LowerTorso" and not Config.AllowTorsoDestroying
-				or Child.Name == "Head" and not Config.AllowHeadDestroying
-				or Child.Name ~= "Head" and Child.Name ~= "HumanoidRootPart" and Child.Name ~= "LowerTorso"
-				and Child.Name ~= "UpperTorso" and Child:IsA("BasePart") and not Config.AllowLimbDestruction
-			then
-				if Character:FindFirstChild("Humanoid") then
-					Character.Humanoid.Health = 0
-				end
-			end
-		end)
-
-
 		-- Auto Respawn
 		Character:WaitForChild("Humanoid").Died:Connect(function()
 			if Config.AutoRespawn then

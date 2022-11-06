@@ -50,14 +50,7 @@ Config.Embody = {
 	-- "Friends" to spawn players near there roblox friends if no friends are there it tries there team then random.
 	RespawnMethod = "Random",
 	AutoRespawn = true,
-	SpawnDelay = 5,
-
-	---------------------- LIMB DESTRUCTION AUTORESPAWN -------------------------
-	-- If a limb is not allowed to be destroyed it will kill the players character opon destruction
-	AllowRootDestroying = false,
-	AllowTorsoDestroying = false,
-	AllowHeadDestroying = false,
-	AllowLimbDestruction = false
+	SpawnDelay = 5
 }
 
 return Config
