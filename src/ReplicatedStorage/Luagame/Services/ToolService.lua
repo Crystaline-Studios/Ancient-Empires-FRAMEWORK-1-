@@ -19,8 +19,7 @@ local Config = RConfig.T
 ----------------------------->> THE ONLY SERVICE <<---------------------------------
 warn("tool service is not dead??")
 
-local Service, Finalize = Object "ToolService"
-
+local Service = {}
 
 function Service:NewTool(Config)
 	assert(Config, "Missing Parameter: Config")
@@ -56,5 +55,5 @@ function Service:GetTools(Player)
 	return PlayerTools[Player]
 end
 
-Finalize()
+
 return Service

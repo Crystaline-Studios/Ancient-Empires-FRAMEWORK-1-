@@ -1,33 +1,21 @@
 -- Created By Carrotoplia on Sun Oct 16 15:02:07 2022
 
------------------------------>> Services and Modules <<---------------------------------
-
-local Get = require(game:GetService("ReplicatedStorage").Get)
-local Object = require(Get("Object"))
-
 ----------------------------->> Object <<---------------------------------
 
 
-local Object, Finalize = Object "QuickSignal Creator"
+local Object = {}
 Object.Class = 'ObjectCreator'
 Object.class = Object.Class
 
 
 
 function Object.new()
-	local Signal, Finalize = Object "QuickSignal"
+	local Signal = {}
 	
 	Signal.Class = "QuickSignal"
-	Signal.class = Signal.Class
 	Signal.Connections = {}
 	Signal.Once = {}
 	Signal.SystemConnections = {}
-
-	Signal:SetReadable("Connections", false)
-	Signal:SetReadable("Once", false)
-	Signal:SetReadable("SystemConnections", false)
-	
-	
 	
 	
 	
@@ -53,7 +41,6 @@ function Object.new()
 			end
 		end)
 	end
-	Signal.fire = Signal.Fire
 	
 	
 	
@@ -62,57 +49,48 @@ function Object.new()
 	function Signal:Connect(f)
 		table.insert(self.Connections, f)
 
-		local Connection, Finalize = Object "Signal Connection"
+		local Connection = {}
 		Connection.Class = "QuickSignalConnection"
-		Connection.class = Connection.Class
 		
 		function Connection:Disconnect()
 			if table.find(self.Signal.Connections) then
 				table.remove(self.Signal.Connections, table.find(self.Signal.Connections))
 			end
 		end
-		Connection.disconnect = Connection.Disconnect
 		
 		function Connection:Reconnect()
 			if not table.find(self.Signal.Connections) then
 				table.insert(self.Signal.Connections, f)
 			end
 		end
-		Connection.reconnect = Connection.Reconnect
+
 		
 		Finalize()
 		return Connection
 	end
-	Signal.connect = Signal.Connect
 	
 	
 	function Signal:ConnectOnce(f)
 		table.insert(self.Once, f)
 
-		local Connection, Finalize = Object "Signal Connection"
+		local Connection = {}
 		Connection.Class = "QuickSignalConnection"
-		Connection.class = Connection.Class
 
 		function Connection:Disconnect()
 			if table.find(self.Signal.Connections) then
 				table.remove(self.Signal.Connections, table.find(self.Signal.Connections))
 			end
 		end
-		Connection.disconnect = Connection.Disconnect
 
 		function Connection:Reconnect()
 			if not table.find(self.Signal.Connections) then
 				table.insert(self.Signal.Connections, f)
 			end
 		end
-		Connection.reconnect = Connection.Reconnect
+
 		
-		Finalize()
 		return Connection
 	end
-	Signal.connectonce = Signal.ConnectOnce
-	Signal.connectOnce = Signal.ConnectOnce
-	
 	
 	
 	
@@ -129,8 +107,6 @@ function Object.new()
 		coroutine.yield()
 		return ReturnValue
 	end
-	Signal.wait = Signal.Wait
-	
 	
 	
 	
@@ -150,9 +126,6 @@ function Object.new()
 		coroutine.yield()
 		return ReturnValue
 	end
-	Signal.waitWithCheck = Signal.WaitWithCheck
-	Signal.waitwithcheck = Signal.WaitWithCheck
-	
 	
 	
 	
@@ -160,8 +133,6 @@ function Object.new()
 		table.clear(Signal.Connections)
 		table.clear(Signal.Once)
 	end
-	Signal.disconnectall = Signal.DisconnectAll
-	Signal.disconnectAll = Signal.DisconnectAll
 	
 	
 	
@@ -176,7 +147,6 @@ function Object.new()
 			table.insert(Connections, Connection)
 		end
 	end
-	Signal.wrap = Signal.Wrap
 	
 	
 	function Signal:Unwrap()
@@ -185,12 +155,8 @@ function Object.new()
 			rawset(Signal, "Wrapped", nil)
 		end
 	end
-	Signal.unwrap = Signal.Unwrap
 	
-	
-	
-	
-	Finalize()
+
 	return Signal
 end
 Object.New = Object.new

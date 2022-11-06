@@ -3,9 +3,8 @@
 ----------------------------->> Services / Modules <<---------------------------------
 local RunService = game:GetService("RunService")
 
-local Get = require(game:GetService("ReplicatedStorage").Get)
-local Object = require(Get("Object"))
 local Remote = script.RemoteEvent
+
 do
 	-- Makes it much harder for exploiters to figure out what remote it is
 	if RunService:IsServer() then
@@ -32,7 +31,7 @@ local SendQueue = {}
 
 ----------------------------->> Object <<---------------------------------
 
-local Telegram, Finalize = Object "Telegram"
+local Telegram = {}
 Telegram.Class = "TelegramLibrary"
 Telegram.class = Telegram.Class
 
@@ -128,9 +127,8 @@ Telegram.setInputTypes = Telegram.SetInputTypes
 
 
 function Telegram:Connect(F)
-	local Connection, Finalize = Object "Telegram Connection"
+	local Connection = {}
 	Connection.Class = "TelegramConnection"
-	Connection.class = Connection.Class
 	
 	function Connection:Disconnect()
 		if table.find(Connections, F) then
@@ -146,7 +144,6 @@ function Telegram:Connect(F)
 	end
 	Connection.reconnect = Connection.Reconnect
 	
-	Finalize()
 	table.insert(Connections, F)
 	return Connection
 end
@@ -157,7 +154,7 @@ Telegram.connect = Telegram.Connect
 
 
 function Telegram:ConnectToID(ID, F)
-	local Connection, Finalize = Object "Telegram Connection"
+	local Connection = {}
 	Connection.Class = "TelegramConnection"
 	
 	local CF = ConnectionsToID[ID]
@@ -177,14 +174,10 @@ function Telegram:ConnectToID(ID, F)
 		end
 	end
 	
-	Finalize()
 	table.insert(CF, F)
 	return Connection
 end
 Telegram.connecttoid = Telegram.ConnectToID
 Telegram.connectToID = Telegram.ConnectToID
 
-
-
-Finalize()
 return Telegram

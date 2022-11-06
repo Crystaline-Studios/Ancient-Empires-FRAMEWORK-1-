@@ -7,7 +7,6 @@ local Players = game:GetService("Players")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local Get = require(game:GetService("ReplicatedStorage").Get)
-local Object = require(Get("Object"))
 local SConfig = require(ServerScriptService.ServerConfig)
 local table = require(Get("table"))
 local ModerationService = require(script.Parent.ModerationService)
@@ -18,7 +17,7 @@ local Config = SConfig.Embody
 
 ----------------------------->> Service <<---------------------------------
 
-local Service, Finalize = Object "EmbodyService"
+local Service = {}
 Service.Class = "EmbodyService"
 
 
@@ -151,5 +150,4 @@ Players.PlayerAdded:Connect(function(Player)
 	end
 end)
 
-Finalize()
 return Service

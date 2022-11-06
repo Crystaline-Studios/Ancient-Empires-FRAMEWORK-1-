@@ -4,12 +4,11 @@
 ----------------------------->> Modules and Services <<---------------------------------
 
 local Get = require(game:GetService("ReplicatedStorage").Get)
-local Object = require(Get("Object"))
 local Signal = require(Get("QuickSignal"))
 
 ----------------------------->> Library <<---------------------------------
 
-local Library, Finalize = Object "Table Library"
+local Library = {}
 setmetatable(Library, {
 	__index = table
 })
@@ -129,7 +128,7 @@ end
 function Library.merge(...)
 	local Tables = {...}
 	local SuperTable = {}
-	for SuperKey, Table in (Tables) do
+	for _, Table in (Tables) do
 		for Key,Value in (Table) do
 			if type(Key) ~= "number" then
 				SuperTable[Key] = Value
@@ -147,5 +146,4 @@ function Library.Random(T)
 end
 Library.random = Library.Random
 
-Finalize()
 return Library

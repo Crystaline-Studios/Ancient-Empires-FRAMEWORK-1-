@@ -3,7 +3,6 @@
 local TweenService = game:GetService("TweenService")
 
 local Get = require(game:GetService("ReplicatedStorage").Get)
-local Object = require(Get("Object"))
 local QuickSignal = require(Get("QuickSignal"))
 local Table = require(Get("Table"))
 
@@ -11,7 +10,8 @@ local UIHolders = {}
 
 ----------------------------->> Service <<---------------------------------
 
-local Service, Finalize = Object "UIService"
+local Service = {}
+Service.Class = "UIService"
 
 function Service:New(Name, Parent)
     assert(Name, "Missing Parameter: Name")
@@ -24,7 +24,7 @@ function Service:New(Name, Parent)
     Frame.Parent = Parent or ScreenGui
     Frame.BorderSizePixel = 0
 
-    local UI, Finalize = Object(Name)
+    local UI = {}
     UIHolders[Name] = UI
 
     UI.Position = {X = 0, Y = 0}
@@ -34,17 +34,6 @@ function Service:New(Name, Parent)
     UI.Roundness = 0
     UI.HorizontalGridPosition = "Center"
     UI.Visible = true
-
-    UI:BindProperty(Frame, "Transparency")
-    UI:BindProperty(Frame, "Enabled", "Visible")
-
-    UI:SetChangable("VerticalGridPosition", true)
-    UI:SetChangable("HorizontalGridPosition", true)
-    UI:SetChangable("Roundness", true)
-
-    UI:SetDatatype("Roundness", "number")
-    UI:SetDatatype("HorizontalGridPosition", {"Center", "Left", "Right"})
-    UI:SetDatatype("VerticalGridPosition", {"Center", "Bottom", "Top"})
 
     Table:GetChangedEvent(UI.Position):Connect(function()
         local UPos = UDim2.new(UI.Size.X,0,UI.Size.Y,0)
@@ -215,28 +204,17 @@ function Service:New(Name, Parent)
     end
 
     function UI:Button(Name)
-        local Button, Finalize = Object(Name)
+        local Button = {}
         Button.Position = {X = 0, Y = 0}
         Button.Size = {X = 0, Y = 0}
-
-        UI:SetChangable("Position", true)
-        UI:SetChangable("Size", true)
-        UI:SetChangable("Roundness", true)
-        UI:SetDatatype("Roundness", "number")
 
         local ButtonInstance = Instance.new("TextButton")
         ButtonInstance.BorderSizePixel = 0 
         ButtonInstance.Name = Name or "Button"
 
-        UI:BindProperty(ButtonInstance, "BackgroundTransparency", "Transparency")
-        UI:BindProperty(ButtonInstance, "Text")
-        UI:BindProperty(ButtonInstance, "BackgroundColor3", "Color")
-
         local ImageLabel = Instance.new("ImageLabel")
         ImageLabel.Size = UDim2.new(1,0,1,0)
         ImageLabel.BackgroundTransparency = 1
-
-        UI:BindProperty(ImageLabel, "Image")
         
 
         Button.OnLeftClick = QuickSignal:Quickify(ButtonInstance.MouseButton1Click)
@@ -267,8 +245,6 @@ function Service:New(Name, Parent)
 
         ImageLabel.Parent = ButtonInstance
         ButtonInstance.Parent = Frame
-
-        Finalize()
         return Button
     end
 
@@ -284,7 +260,6 @@ function Service:New(Name, Parent)
         return Service:New(Name, Frame)
     end
 
-    Finalize()
     return UI, ScreenGui
 end
 
@@ -292,5 +267,4 @@ function Service:GetUI(Name)
     return UIHolders[Name]
 end
 
-Finalize()
 return Service

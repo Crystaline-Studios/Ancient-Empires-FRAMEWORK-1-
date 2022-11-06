@@ -1,15 +1,10 @@
 -- Created By Carrotoplia on Tue Oct 11 13:48:00 2022
 -- For easy creation of debounces
 
------------------------------>> Modules and Services <<---------------------------------
-
-local Get = require(game:GetService("ReplicatedStorage").Get)
-local Object = require(Get("Object"))
-
 ----------------------------->> Object <<---------------------------------
 
 
-local Object, Finalize = Object "Debounce Creator"
+local Object = {}
 Object.Class = "ObjectCreator"
 Object.class = Object.Class
 
@@ -18,11 +13,10 @@ Object.class = Object.Class
 
 
 function Object.new()
-	local Debounce, Finalize = Object "Debounce"
+	local Debounce = {}
 	local DebounceCallbacks = {}
 		
 	Debounce.Class = "Debounce"
-	Debounce.class = Debounce.Class
 	Debounce.OnCooldown = false
 	
 	function Debounce:Wait()
@@ -35,7 +29,6 @@ function Object.new()
 			coroutine.yield()
 		end
 	end
-	Debounce.wait = Debounce.Wait
 	
 	
 	
@@ -66,15 +59,9 @@ function Object.new()
 	Debounce.bounce = Debounce.Bounce
 	
 	
-	
-	
-	
-	Finalize()
 	return Debounce
 end
 Object.New = Object.new
 
 
-
-Finalize()
 return Object

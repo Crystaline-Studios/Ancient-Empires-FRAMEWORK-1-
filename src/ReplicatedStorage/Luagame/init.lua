@@ -30,13 +30,15 @@ local ServiceAdded = QuickSignal.new()
 ----------------------------->> Object <<---------------------------------
 
 
-local Luagame, Finalize = Object "Luagame"
+local Luagame = {}
 Luagame.Class = "Engine"
 Luagame.ServiceAdded = ServiceAdded
 
 setmetatable(Luagame, {
     __index = function(Index)
-        if rawget(Services, Index) == nil then
+		if rawget(Libraries, Index) then
+			return rawget(Libraries, Index)
+        elseif rawget(Services, Index) == nil then
             if game:GetService(Index) then
                 return game:GetService(Index)
             else
@@ -210,5 +212,4 @@ function Luagame:ReleaseFolderDeep(Folder)
 	end
 end
 
-Finalize()
 return Luagame

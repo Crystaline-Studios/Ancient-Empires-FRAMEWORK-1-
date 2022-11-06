@@ -84,7 +84,7 @@ Players.PlayerRemoving:Connect(function(Player)
 end)
 
 ----------------------------->> The Bank <<---------------------------------
-local Bank, Finalize = Object "DataBankService"
+local Bank = {}
 
 function Bank:GetPlayerDataTable(Player)
 	assert(Player, "Missing Parameter: Player")
@@ -106,5 +106,4 @@ function Bank:GetPlayerSystemDataTable(Player)
 	end
 end
 
-Finalize()
 return Bank

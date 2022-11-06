@@ -7,8 +7,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 
-local Get = require(ReplicatedStorage.Get)
-local Object = require(Get("Object"))
 
 ----------------------------->> Assets and Variables <<---------------------------------
 
@@ -98,7 +96,8 @@ UserInputService.InputEnded:Connect(function(Input, IsGameProccessed)
 end)
 ----------------------------->> Service <<---------------------------------
 
-local Service, Finalize = Object "PlayerInputService"
+local Service = {}
+Service.Class = "PlayerInputService"
 
 function Service:AllPressed(NotProccessed, ...)
 	local Enums = {...}
@@ -191,5 +190,4 @@ function Service:AnyReleaseEvent(NotProccessed, ...)
 end
 
 
-Finalize()
 return Service
