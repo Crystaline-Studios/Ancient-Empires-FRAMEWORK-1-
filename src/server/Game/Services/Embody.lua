@@ -7,7 +7,7 @@ local Players = game:GetService("Players")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local Get = require(game:GetService("ReplicatedStorage").Get)
-local SConfig = require(ServerScriptService.ServerConfig)
+local SConfig = require(Get("SConfig"))
 local table = require(Get("table"))
 local ModerationService = require(script.Parent.ModerationService)
 
@@ -29,8 +29,8 @@ function Service:Respawn(Player)
 	task.spawn(function()
 		local Root = Character:WaitForChild("HumanoidRootPart")
 		if Config.RespawnMethod == "Random" then
-			ModerationService:SafeMoveTo(Player, table.random(Config.RespawnLocations))
-
+			ModerationService:TP(Player)
+			Root.CFrame = CFrame.new(table.random(Config.RespawnLocations))
 
 		elseif Config.RespawnMethod == "Far" then
 			local Location

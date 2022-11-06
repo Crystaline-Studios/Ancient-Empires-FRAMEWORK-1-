@@ -83,6 +83,7 @@ ProximityPromptService.PromptButtonHoldBegan:Connect(function(Prompt, Player)
 end)
 
 Players.PlayerAdded:Connect(function(Player)
+    Frames[Player] = {{}} -- For stupid embody reasons
     local ActionLog = ModActions:GetAnticheatLog(Player.UserId)
     local IsBanned = ModActions:IsBanned(Player.UserId) 
 
@@ -230,7 +231,8 @@ end)
 
 
 function Service:TP(Player)
-    Frames[Player][#Frames[Player]].DoMagnitudeCheck = false
+    local PlayerFrames = Frames[Player]
+    PlayerFrames[#PlayerFrames].DoMagnitudeCheck = false
 end
 
 

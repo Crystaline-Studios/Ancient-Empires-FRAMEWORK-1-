@@ -7,14 +7,11 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Get = require(game:GetService("ReplicatedStorage").Get)
-local Object = require(Get("Object"))
 local QuickSignal = require(Get("QuickSignal"))
-local RConfig = require(ReplicatedStorage.ReplicatedConfig)
 
 ----------------------------->> Variables <<---------------------------------
 
 local PlayerTools = {}
-local Config = RConfig.T
 
 ----------------------------->> THE ONLY SERVICE <<---------------------------------
 warn("tool service is not dead??")

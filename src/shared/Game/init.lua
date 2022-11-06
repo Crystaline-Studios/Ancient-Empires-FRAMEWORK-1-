@@ -1,6 +1,7 @@
 ----------------------------->> Services and modules <<---------------------------------
 
 local ReplicatedStorage      = game:GetService("ReplicatedStorage")
+local RunService             = game:GetService("RunService")
 local ServerScriptService    = game:GetService("ServerScriptService")
 local Players 				 = game:GetService("Players")
 local LocalPlayerScripts     = if Players.LocalPlayer then Players.LocalPlayer.PlayerScripts else nil 
@@ -56,34 +57,40 @@ end
 setmetatable(Luagame, Metatable)
 
 --------- Services
-for _,Service in pairs(ReplicatedStorage.Game.Services) do
-	if Services[Service.Name] then
-		error("Overlapping service names :skull:")
-	end
-
-	task.spawn(function()
-		Services[Service.Name] = require(Service)
-	end)
-end
-if ServerScriptService then
-	for _,Service in pairs(ServerScriptService.Game.Services) do
+for _,Service in pairs(ReplicatedStorage.Game.Services:GetDescendants()) do
+	if Service:IsA("ModuleScript") then 
 		if Services[Service.Name] then
 			error("Overlapping service names :skull:")
 		end
-		
+
 		task.spawn(function()
 			Services[Service.Name] = require(Service)
 		end)
+	end
+end
+if RunService:IsServer() then
+	for _,Service in pairs(ServerScriptService.Game.Services:GetDescendants()) do
+		if Service:IsA("ModuleScript") then 
+			if Services[Service.Name] then
+				error("Overlapping service names :skull:")
+			end
+	
+			task.spawn(function()
+				Services[Service.Name] = require(Service)
+			end)
+		end
 	end
 else
-	for _,Service in pairs(LocalPlayerScripts.Game.Services) do
-		if Services[Service.Name] then
-			error("Overlapping service names :skull:")
+	for _,Service in pairs(LocalPlayerScripts.Game.Services:GetDescendants()) do
+		if Service:IsA("ModuleScript") then 
+			if Services[Service.Name] then
+				error("Overlapping service names :skull:")
+			end
+	
+			task.spawn(function()
+				Services[Service.Name] = require(Service)
+			end)
 		end
-		
-		task.spawn(function()
-			Services[Service.Name] = require(Service)
-		end)
 	end
 end
 
@@ -109,7 +116,7 @@ function Luagame.Create(Type, ...)
 	end
 
 	if not Module then 
-		if ServerScriptService then
+		if RunService:IsServer() then
 			for _,SChild in pairs(ServerScriptService.Game.LuaObjects:GetDescendants()) do
 				if SChild:IsA("ModuleScript") and SChild.Name == Type then
 					Module = SChild

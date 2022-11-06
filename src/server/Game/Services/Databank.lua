@@ -4,11 +4,11 @@
 
 local Players = game:GetService("Players")
 local ServerScriptService = game:GetService("ServerScriptService")
-local Get = require(game:GetService("ReplicatedStorage").Get)
-
-local Object = require(Get("Object"))
 local ProfileService = require(script.Parent.ProfileService)
-local SConfig = require(ServerScriptService.ServerConfig)
+
+
+local Get = require(game:GetService("ReplicatedStorage").Get)
+local SConfig = require(Get("SConfig"))
 local table = require(Get("table", "Libraries"))
 
 ----------------------------->> Tables / Variables / Misc <<---------------------------------
