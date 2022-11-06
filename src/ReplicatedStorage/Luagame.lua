@@ -1,18 +1,16 @@
 ----------------------------->> Services and modules <<---------------------------------
 
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local ServerScriptService = game:GetService("ServerScriptService")
-local RunService = game:GetService("RunService")
-local Players = game:GetService("Players")
-local LocalPlayerScripts = if Players.LocalPlayer then 
-	Players.LocalPlayer.PlayerScripts else nil
+local ReplicatedStorage      = game:GetService("ReplicatedStorage")
+local ServerScriptService    = game:GetService("ServerScriptService")
+local Players 				 = game:GetService("Players")
+local LocalPlayerScripts     = if Players.LocalPlayer then Players.LocalPlayer.PlayerScripts else nil 
+
+
 
 local Get = require(game:GetService("ReplicatedStorage").Get)
 local QuickSignal = require(Get("QuickSignal"))
 
 ----------------------------->> Variables <<---------------------------------
-
-local IsClient = RunService:IsClient()
 
 local Libraries = {}
 local Services = {}
@@ -34,13 +32,9 @@ local Metatable = {}
 function Metatable:__index(_, Index)
 	if rawget(Libraries, Index) then
 		return rawget(Libraries, Index)
-	elseif rawget(Services, Index) == nil then
-		if game:GetService(Index) then
-			return game:GetService(Index)
-		else
-			return game[Index]
-		end
-	else
+
+
+	elseif rawget(Services, Index) then
 		local Value = rawget(Services, Index)
 		if typeof(Value) == "Instance" then
 			local Holder = require(Value)
@@ -48,6 +42,14 @@ function Metatable:__index(_, Index)
 			return Holder
 		else
 			return Value
+		end
+
+
+	else
+		if game:GetService(Index) then
+			return game:GetService(Index)
+		else
+			return game[Index]
 		end
 	end
 end
@@ -95,29 +97,43 @@ end
 
 
 
--------------- Libraries
-for _,Library in pairs(script.Libraries:GetChildren()) do
-	Libraries[Library.Name] = require(Library)
-end
-if IsClient then
-	for _,Library in pairs(LocalPlayerScripts["Clientside System"].Libraries:GetChildren()) do
-		Libraries[Library.Name] = require(Library)
+-------- Instance Creation
+
+
+function Luagame.Create(Type, ...)
+	local Module
+	for _,SChild in pairs(ReplicatedStorage.Game.LuaObjects:GetDescendants()) do
+		if SChild:IsA("ModuleScript") and SChild.Name == Type then
+			Module = SChild
+		end
 	end
-else
-	for _,Library in pairs(ServerScriptService["Serverside System"].Libraries:GetChildren()) do
-		Libraries[Library.Name] = require(Library)
+
+	if not Module then 
+		if ServerScriptService then
+			for _,SChild in pairs(ServerScriptService.Game.LuaObjects:GetDescendants()) do
+				if SChild:IsA("ModuleScript") and SChild.Name == Type then
+					Module = SChild
+				end
+			end
+		else
+			for _,SChild in pairs(LocalPlayerScripts.Game.LuaObjects:GetDescendants()) do
+				if SChild:IsA("ModuleScript") and SChild.Name == Type then
+					Module = SChild
+				end
+			end
+		end
+	end
+	assert(Module, "Object not found. (IT CANT FIND IT)")
+
+	if Module.Bind then
+		return Module.Bind(...)
+	else
+		return Module.New(...)
 	end
 end
 
-
-function Luagame:GetLibraries()
-	return Libraries
-end
 
 ---------- Script State Control
-
-
-
 
 function Luagame:Track(Script, Yield)
 	local Tab = {Coroutine = coroutine.running(), Value = true}
