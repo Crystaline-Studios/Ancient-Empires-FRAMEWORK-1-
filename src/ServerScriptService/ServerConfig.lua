@@ -17,6 +17,12 @@ Config.ModerationService = {
 	GodmodeCheck = true, -- Should it try preventing godmode? (Triggered by humanoid of player being destroyed)
 	AllowRootDestruction = false, -- Should it prevent deletion of rootpart
 
+	ProximityPromptDistanceCheck = true, -- Should it track if a exploiter triggers a proximity prompt from a far distance
+	ProximityPromptDistanceThreshold = 2, -- The threshold for proximity prompt triggering from a distance above the normal
+
+	ProximityPromptInstantFireCheck = true, -- Should it track if a proximity prompt is triggered instantly
+	ProximityPromptInstantFireThreshold = 0.5, -- The threshold for proximity prompt instant triggering
+
 	------ Player Anticheat Settings
 	Whitelisted = {
 		-- Input any usernames of users you want to make the anticheat not apply to.

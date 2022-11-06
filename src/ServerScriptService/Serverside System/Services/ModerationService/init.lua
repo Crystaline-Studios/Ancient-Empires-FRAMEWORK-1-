@@ -3,204 +3,234 @@
 
 ----------------------------->> Modules / Services / Nonchanging Assets <<---------------------------------
 
-local Workspace = game:GetService("Workspace")
 local Players = game:GetService("Players")
-local ServerScriptService = game:GetService("ServerScriptService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local ProximityPromptService = game:GetService("ProximityPromptService")
 
------------------------------>> Assets / Variables / Everything Else <<---------------------------------
+local ModActions = require(script.ModerationActions)
+local Get = require(ReplicatedStorage.Get)
+local QuickSignal = require(Get("QuickSignal"))
+local Config = require(Get("SConfig"))
+Config = Config.ModerationService
 
-local SConfig = require(ServerScriptService.ServerConfig)
-local Actions = require(script.ModerationActions)
-local Config = SConfig.ModerationService
+local Frames = {}
 
-local LastPositions = {}
+
+function RunSync(F)
+    task.synchronize()
+    F()
+    task.desynchronize()
+end
 
 ----------------------------->> The Service / THE THE THE SERVICE <<---------------------------------
 
-local Service = setmetatable({}, {__index = require(script.ModerationActions)})
+local Service = setmetatable({}, {__index = ModActions})
 
+Service.OnTriggered = QuickSignal.new()
+Service.OnFly = QuickSignal.new()
+Service.OnNoclip = QuickSignal.new()
+Service.OnMagnitude = QuickSignal.new()
+Service.OnGodmode = QuickSignal.new()
+Service.OnRootremoval = QuickSignal.new()
+Service.OnFaketrigger = QuickSignal.new()
+
+ProximityPromptService.PromptButtonHoldBegan:Connect(function(Prompt, Player)
+    local ActionLog = ModActions:GetAnticheatLog(Player.UserId)
+
+    if Config.ProximityPromptDistanceCheck then
+        if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+            local Distance = (Player.Character.HumanoidRootPart.Position - Prompt:FindFirstAncestorOfClass("BasePart").Position).Magnitude
+            if Distance > Prompt.MaxActivationDistance + Config.ProximityPromptDistanceThreshold then
+                Service.OnFaketrigger:Fire(Player)
+                ModActions:Kick(Player.UserId, "KickCode: 2. Report this as a bug if it happens and your not a exploiter.")
+                table.insert(ActionLog, {
+                    Type = "OutOfRangeProximityPromptTrigger",
+                    Time = os.time(),
+                    JobID = game.JobId,
+                    PlaceVersion = game.PlaceVersion,
+                })
+            end
+        end
+    end
+
+    if Config.ProximityPromptInstantFireCheck then
+        local Running = coroutine.running()
+        local StartDuration = Prompt.HoldDuration
+        local Time = os.time()
+
+        local Connection = ProximityPromptService.PromptButtonHoldEnded:Connect(function(TPrompt, TPlayer)
+            if Prompt == TPrompt and TPlayer == Player then
+                coroutine.resume(Running)
+            end
+        end)
+        coroutine.yield()
+
+        Connection:Disconnect()
+        if StartDuration == Prompt.HoldDuration then
+            if (Time + Prompt.HoldDuration) > (os.time() + Config.ProximityPromptInstantFireThreshold) then
+                Service.OnFaketrigger:Fire(Player)
+                ModActions:Kick(Player.UserId, "KickCode: 3. Report this as a bug if it happens and your not a exploiter.")
+                table.insert(ActionLog, {
+                    Type = "InstantFiringProximityPrompt",
+                    Time = os.time(),
+                    JobID = game.JobId,
+                    PlaceVersion = game.PlaceVersion,
+                })
+            end
+        end
+    end
+end)
 
 Players.PlayerAdded:Connect(function(Player)
-    local ActionLogs = Actions:GetAnticheatLog(Player.UserId)
-    task.spawn(function()
-        local LatestCount = #ActionLogs 
-        while true do
-            task.wait(60)
-            local HitCount = #ActionLogs - LatestCount
-            if HitCount > Config.ActionsPerMinuteCap then
-                Actions:Kick(Player.UserId, "Triggered Anticheat Too often if this is causing problems for you report it as a bug.")
-            else
-                LatestCount = #ActionLogs + Config.ActionsPerMinuteCap
-            end 
-        end
-    end)
+    local ActionLog = ModActions:GetAnticheatLog(Player.UserId)
+    local IsBanned = ModActions:IsBanned(Player.UserId) 
 
+    ----- Ban Detection ------
+    if IsBanned == true or IsBanned and os.time() < IsBanned then
+        Player:Kick(ModActions:GetBanReason(Player.UserId))
+    end
 
     Player.CharacterAdded:Connect(function(Character)
         local Root = Character:WaitForChild("HumanoidRootPart")
         local Humanoid = Character:WaitForChild("Humanoid")
 
+        Frames[Player] = {}
+        local PositionFrames = Frames[Player]
 
-        ---- ANTI GOD MODE
-        Character.ChildRemoving:Connect(function(Child)
-            if Child == Humanoid then
-                Character:Destroy()
-                warn("Humanoid Destroyed: So Character is Too.")
-            end
-        end)
+        table.insert(PositionFrames, {
+            Position = Root.Position, -- Roots Position
+            CFrame = Root.CFrame, -- Roots CFrame data
+            IsGrounded = Enum.Material.Grass, -- Placeholder
+            DoMagnitudeCheck = true, -- Disabled when teleported
+            FlightRay = Workspace:Raycast(Root.Position, Vector3.new(0, 180, 0), RaycastParams.new())
+        })
 
-        LastPositions[Player] = {LastPositions[Player], {
-            IsGrounded = Humanoid.FloorMaterial ~= Enum.Material.Air,
-            Position = Root.Position,
-            FloorDistance = 1
-        }}
-        local PositionData = LastPositions[Player]
 
-        while Root and Humanoid do
-            task.wait(0.25)
-            local LastData = PositionData[#PositionData]
 
-            ---------- ANTI Fly
-            local FloorRay = workspace:Raycast(Root.Position, Vector3.new(0, -2, 0), RaycastParams.new())
-            local FloorDistance = if FloorRay.Instance then (FloorRay.Position - Root.Position).Magnitude else nil 
-
-            if not FloorDistance then
-                if not Config.AllowVoidStanding then
-                    Humanoid.Sit = false
-
-                    Root.Position = LastData.Position
-                    Humanoid.Health -= 5
-                    table.insert(ActionLogs, {
-                        Type = "AboveVoid",
-                        Time = os.time()
-                    })
-                end
-            else
-                if FloorDistance > LastData.FloorDistance - 0.1 then -- Don't think it went down at all
-                    local LatestFrame
-                    for Count = 1, #PositionData do
-                        if PositionData[Count].IsGrounded then
-                            LatestFrame = PositionData[Count]
-                        end
-                    end
-
-                    Humanoid.Sit = false
-
-                    if not LatestFrame then
-                        Root.Position = PositionData[#PositionData - 1].Position
-                        Humanoid.Health -= 5
-                        table.insert(ActionLogs, {
-                            Type = "Fly",
-                            Time = os.time()
+        if Config.GodmodeCheck then
+            Humanoid.AncestryChanged:Connect(function(_, NewParent)
+                -- Checks if the players character still exists
+                if Character:IsDescendantOf(game) then
+                    if not NewParent or not game:IsAncestorOf(NewParent) then
+                        Service.OnGodmode:Fire(Player)
+                        table.insert(ActionLog, {
+                            Type = "Godmode",
+                            Time = os.time(),
+                            JobID = game.JobId,
+                            PlaceVersion = game.PlaceVersion,
                         })
-                    else
-                        Root.Position = LatestFrame.Position
-                        Humanoid.Health -= 5
-                        table.insert(ActionLogs, {
-                            Type = "Fly",
-                            Time = os.time()
+                        ModActions:Kick(Player, "KickCode: 1. Report this as a bug if it happens and your not a exploiter.")
+                    end
+                end
+            end)
+        end
+
+        if not Config.AllowRootDestruction then
+            Root.AncestryChanged:Connect(function(_, NewParent) 
+                -- Checks if the players character still exists
+                if Character:IsDescendantOf(game) then
+                    if not NewParent or not game:IsAncestorOf(NewParent) then
+                        Service.OnRootremoval:Fire(Player)
+                    end
+                end
+            end)
+        end
+        
+
+        while Root and Character and Humanoid do
+            local FrameData = PositionFrames[#PositionFrames]
+            local WaitTime = math.random(5, 10) -- Inconsistant so exploiters cant move exactly before it runs the checks 
+
+            local WalkSpeed = Humanoid.WalkSpeed
+            local JumpPower = Humanoid.JumpPower
+            local RootPosition = Root.Position
+            local FloorMaterial = Humanoid.FloorMaterial
+            local Gravity = workspace.Gravity
+
+
+            task.desynchronize()
+            -------------------- Magnitude Check ----------------------
+            if Config.MagnitudeCheck and FrameData.DoMagnitudeCheck then
+                if (FrameData.Position - RootPosition).Magnitude > (WalkSpeed + Config.MagnitudeThreshold) / WaitTime then
+                    RunSync(function()
+                        Root.CFrame = FrameData.CFrame
+                        Service.OnMagnitude:Fire(Player)
+                        table.insert(ActionLog, {
+                            Type = "Magnitude",
+                            Time = os.time(),
+                            JobID = game.JobId,
+                            PlaceVersion = game.PlaceVersion,
                         })
-                    end
+                    end)
                 end
             end
 
-            ---------- Location 
-            local Distance = (LastData.Position - Root.Position).Magnitude
-            local MaxDistance = Humanoid.WalkSpeed + Config.DistanceThreshold
-            MaxDistance /= 4
-
-            if Distance > MaxDistance then
-                Humanoid.Sit = false
-
-                local LatestFrame
-                for Count = 1, #PositionData do
-                    if PositionData[Count].IsGrounded then
-                        LatestFrame = PositionData[Count]
-                    end
-                end
-                if not LatestFrame then
-                    Root.Position = PositionData[#PositionData - 1].Position
-                    Humanoid.Health -= 5
-                    table.insert(ActionLogs, {
-                        Type = "Distance",
-                        Time = os.time()
-                    })
-                else
-                    Root.Position = LatestFrame.Position
-                    Humanoid.Health -= 5
-                    table.insert(ActionLogs, {
-                        Type = "Distance",
-                        Time = os.time()
-                    })
-                end
-            end
-
-            ---------- Noclip
-            local Params = RaycastParams.new()
-            Params.IgnoreWater = true
             
-            local CastA = workspace:Raycast(LastData.Position, CFrame.lookAt(LastData.Position, Root.Position).LookVector, Params)
-            local CastB = workspace:Raycast(Root.Position, CFrame.lookAt(Root.Position, LastData.Position).LookVector, Params)
+            ---------------- Noclip Check ---------------------------
+            if Config.NoclipCheck then
+                local RayParams = RaycastParams.new()
+                RayParams.IgnoreWater = true
 
-            if CastA.Material and CastB.Material then
-                Distance = (CastA.Position - CastB.Position).Magnitude
-                if Distance > Config.NoclipThreshold then
-                    Humanoid.Sit = false
+                local RayA = Workspace:Raycast(FrameData.Position, CFrame.lookAt(FrameData.Position, RootPosition), RayParams)
+                local RayB = Workspace:Raycast(RootPosition, CFrame.lookAt(RootPosition, FrameData.Position), RayParams)
 
-                    Root.Position = LastData.Position
-                    Humanoid.Health -= 5
+                if RayA.Position or RayB.Position then 
+                    RunSync(function()
+                        Root.CFrame = FrameData.CFrame
+                        Service.OnNoclip:Fire(Player)
+                        table.insert(ActionLog, {
+                            Type = "Noclip",
+                            Time = os.time(),
+                            JobID = game.JobId,
+                            PlaceVersion = game.PlaceVersion,
+                        })
+                    end)
                 end
-
-            elseif CastA.Material and not CastB.Material  then
-                Humanoid.Sit = false
-
-
-                Root.Position = LastData.Position
-                Humanoid.Health -= 5
-                table.insert(ActionLogs, {
-                    Type = "Noclip",
-                    Time = os.time()
-                })
             end
 
 
-            table.insert(PositionData, {
-                IsGrounded = Humanoid.FloorMaterial ~= Enum.Material.Air,
-                Position = Root.Position
+            ---------------- Flight Check ---------------------------
+            local RayParams = RaycastParams.new()
+            RayParams.IgnoreWater = false
+
+            local FlightRay = Workspace:Raycast(FrameData.Position, Vector3.new(0, 180, 0) , RayParams)
+
+            if Config.FlightCheck and FloorMaterial == Enum.Material.Air then
+                if not FlightRay.Instance or FlightRay.Distance > JumpPower^2 / (2*Gravity) + Config.FlightThreshold then-- Player is not jumping
+                    if FrameData.FlightRay.Distance > FlightRay.Distance then
+                        -- Player has not moved down in air 
+                        RunSync(function()
+                            Humanoid.Sit = false
+                            Root.CFrame = CFrame.new(FlightRay.Position + Vector3.new(0, Humanoid.HipHeight, 0))
+                                table.insert(ActionLog, {
+                                Type = "Flight",
+                                Time = os.time(),
+                                JobID = game.JobId,
+                                PlaceVersion = game.PlaceVersion,
+                            })
+                            Service.OnFly:Fire(Player)
+                        end)
+                    end
+                end
+            end
+
+            task.synchronize()
+            table.insert(PositionFrames, {
+                Position = Root.Position, -- Roots Position
+                CFrame = Root.CFrame, -- Roots CFrame data
+                IsGrounded = Humanoid.FloorMaterial, -- Placeholder
+                DoMagnitudeCheck = true, -- Disabled when teleported
+                FlightRay = FlightRay
             })
-        end     
+            task.wait(.1)
+        end
     end)
 end)
 
-function Service:SafeTP(Player, Location)
-    assert(Player, "Missing Parameter: Player")
-    assert(Location, "Missing Parameter: Location")
 
-    if Player.Character then
-        Player.Character:WaitForChild("Humanoid").Sit = false
-        Player.Character:WaitForChild("HumanoidRootPart").Position = Location
-        table.insert(Player, {
-            IsGrounded = true,
-            FloorDistance = 0,
-            Position = Location
-        })
-    end
-end
-function Service:SafeMoveTo(Player, Location)
-    assert(Player, "Missing Parameter: Player")
-    assert(Location, "Missing Parameter: Location")
-
-    if Player.Character then
-        Player.Character:WaitForChild("Humanoid").Sit = false
-        Player.Character:WaitForChild("HumanoidRootPart")
-
-        Player.Character:MoveTo(Location)
-        table.insert(Player, {
-            IsGrounded = true,
-            FloorDistance = 0,
-            Position = Location
-        })
-    end
+function Service:TP(Player)
+    Frames[Player][#Frames[Player]].DoMagnitudeCheck = false
 end
 
 
