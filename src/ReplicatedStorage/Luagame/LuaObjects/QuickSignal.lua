@@ -65,7 +65,6 @@ function Object.new()
 		end
 
 		
-		Finalize()
 		return Connection
 	end
 	
