@@ -1,18 +1,13 @@
--- Created By Carrotoplia on Tue Oct 11 16:18:47 2022
--- Luagamezer made for Luagame easy scripting
-
-
 ----------------------------->> Services and modules <<---------------------------------
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local LocalPlayerScripts; if LocalPlayer then LocalPlayerScripts = LocalPlayer.PlayerScripts end
+local LocalPlayerScripts = if Players.LocalPlayer then 
+	Players.LocalPlayer.PlayerScripts else nil
 
 local Get = require(game:GetService("ReplicatedStorage").Get)
-local Object = require(Get("Object"))
 local QuickSignal = require(Get("QuickSignal"))
 
 ----------------------------->> Variables <<---------------------------------
@@ -34,80 +29,61 @@ local Luagame = {}
 Luagame.Class = "Engine"
 Luagame.ServiceAdded = ServiceAdded
 
-setmetatable(Luagame, {
-    __index = function(Index)
-		if rawget(Libraries, Index) then
-			return rawget(Libraries, Index)
-        elseif rawget(Services, Index) == nil then
-            if game:GetService(Index) then
-                return game:GetService(Index)
-            else
-                return game[Index]
-            end
-        else
-            local Value = rawget(Services, Index)
-            if typeof(Value) == "Instance" then
-                local Holder = require(Value)
-                rawset(Services, Index, Holder)
-                return Holder
-            else
-                return Value
-            end
-        end
-    end
-})
+local Metatable = {}
 
-
-------------- Services Loader
--- Loads stuff in this order
--- system replicated services
--- system server/client services then your services
--- finally your replicated services
--- it will override the oldest created services.
-
-function CreateFromFolder(Folder)
-    for _,Service in pairs(Folder:GetChildren()) do
-		if Service:IsA("ModuleScript") then
-			
-			if Service:FindFirstChild("LoadInstantly") and Service.LoadInstantly.Value then
-				task.spawn(function()
-					Services[Service.Name] = require(Service)
-					ServiceAdded:Fire(Service.Name)
-				end)
-			else
-				Services[Service.Name] = Service
-				ServiceAdded:Fire(Service.Name)
-			end
-			
-		elseif Service:IsA("Folder") then
-			for _,ServiceA in pairs(Service:GetChildren()) do
-				if ServiceA:IsA("ModuleScript") then
-					if ServiceA:FindFirstChild("LoadInstantly") and ServiceA.LoadInstantly.Value then
-						task.spawn(function()
-							Services[ServiceA.Name] = require(ServiceA)
-							ServiceAdded:Fire(ServiceA.Name)
-						end)
-					else
-						Services[ServiceA.Name] = ServiceA
-					end
-				end
-			end
+function Metatable:__index(_, Index)
+	if rawget(Libraries, Index) then
+		return rawget(Libraries, Index)
+	elseif rawget(Services, Index) == nil then
+		if game:GetService(Index) then
+			return game:GetService(Index)
+		else
+			return game[Index]
+		end
+	else
+		local Value = rawget(Services, Index)
+		if typeof(Value) == "Instance" then
+			local Holder = require(Value)
+			rawset(Services, Index, Holder)
+			return Holder
+		else
+			return Value
 		end
 	end
 end
+setmetatable(Luagame, Metatable)
 
-CreateFromFolder(script.Services)
-if IsClient then
-	-- Client
-	CreateFromFolder(LocalPlayerScripts["Clientside System"].Services)
-	CreateFromFolder(LocalPlayerScripts.Game.Services)
-else
-	-- Server
-	CreateFromFolder(ServerScriptService["Serverside System"].Services)
-	CreateFromFolder(ServerScriptService.Game.Services)
+--------- Services
+for _,Service in pairs(ReplicatedStorage.Game.Services) do
+	if Services[Service.Name] then
+		error("Overlapping service names :skull:")
+	end
+
+	task.spawn(function()
+		Services[Service.Name] = require(Service)
+	end)
 end
-CreateFromFolder(ReplicatedStorage.Game.Services)
-
+if ServerScriptService then
+	for _,Service in pairs(ServerScriptService.Game.Services) do
+		if Services[Service.Name] then
+			error("Overlapping service names :skull:")
+		end
+		
+		task.spawn(function()
+			Services[Service.Name] = require(Service)
+		end)
+	end
+else
+	for _,Service in pairs(LocalPlayerScripts.Game.Services) do
+		if Services[Service.Name] then
+			error("Overlapping service names :skull:")
+		end
+		
+		task.spawn(function()
+			Services[Service.Name] = require(Service)
+		end)
+	end
+end
 
 function Luagame:GetService(Name)
     return ServiceAdded:WaitWithCheck(function(NName)
@@ -119,7 +95,7 @@ end
 
 
 
----------- Libraries
+-------------- Libraries
 for _,Library in pairs(script.Libraries:GetChildren()) do
 	Libraries[Library.Name] = require(Library)
 end
