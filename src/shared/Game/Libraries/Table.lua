@@ -1,10 +1,7 @@
--- Gives changed events for tables!
--- by carrotoplia
-
 ----------------------------->> Modules and Services <<---------------------------------
 
 local Get = require(game:GetService("ReplicatedStorage").Get)
-local Signal = require(Get("QuickSignal"))
+local QuickSignal = require(Get("QuickSignal"))
 
 ----------------------------->> Library <<---------------------------------
 
@@ -13,67 +10,8 @@ setmetatable(Library, {
 	__index = table
 })
 Library.Class = "TableLibrary"
-Library.class = Library.Class
 
-
-
-
-function Library:GetChangedEvent(Table)
-	local Metatable = getmetatable(Table)
-	
-	if Metatable and not Metatable.__ChangedEvent or not Metatable then
-		local Meta = {}
-		
-		Meta.__ChangedEvent = Signal.new()
-		Meta.__IndexChangedEvents = {}
-
-		function Meta:__newindex(Index, Value)
-			local OldValue = rawget(Table, Index)
-
-			if Metatable and Metatable.__newindex then
-				if typeof(Metatable.__newindex) == "function" then
-					Metatable.__newindex(Index,Value)
-					local CurrentValue = rawget(Table, Index)
-
-					if CurrentValue == Value and rawget(Table, Index) ~= OldValue then
-						Meta.__ChangedEvent:Fire(Index, Value, OldValue)
-
-						if Meta.__IndexChangedEvents[Index] then
-							Meta.__IndexChangedEvents[Index]:Fire(Value, OldValue)
-						end
-					end
-				else
-					error("Unknown Type in newindex")
-				end
-			else
-				rawset(Table, Index, Value)
-				if rawget(Table, Index) == Value and rawget(Table, Index) ~= OldValue then
-					Meta.__ChangedEvent:Fire(Index,Value,OldValue)
-
-					if Meta.__IndexChangedEvents[Index] then
-						Meta.__IndexChangedEvents[Index]:Fire(Value, OldValue)
-					end
-				end
-			end
-		end
-		setmetatable(Table, Meta)
-	end
-
-	return getmetatable(Table).__ChangedEvent
-end
-
-function Library:GetIndexChangedEvent(Table, Index)
-	Library:GetChangedEvent(Table)
-	local Meta = getmetatable(Table)
-
-	if not Meta.__IndexChangedEvents[Index] then
-		Meta.__IndexChangedEvents[Index] = Signal.new()
-	end
-
-	return Meta.__IndexChangedEvents[Index]
-end
-
-function Library:GetIndexes(T)
+function Library.Index(T)
 	local Indexes = {}
 	local function Loop(T)
 		for _,V in pairs(T) do
@@ -87,41 +25,33 @@ function Library:GetIndexes(T)
 	return Indexes
 end
 
-function Library:ValueIsWithin(T,V)
-	local Indexes = {}
+function Library.superfind(T, FunctionValue)
+	local VKey 
+	local Source
 	local function Loop(T)
-		for _,V in pairs(T) do
-			table.insert(Indexes, V)
-			if type(V) == "table" then
-				Loop(V)
+		for Key, KeyValue in pairs(T) do
+			if FunctionValue == KeyValue then
+				VKey = Key
+				Source = T
+				break
+			elseif type(KeyValue) == "table" then
+				Loop(KeyValue)
 			end
 		end
 	end
 	Loop(T)
 
-	if table.find(Indexes, V) then
-		return true
-	else
-		return false
-	end
+	return Source, VKey
 end
 
+-- TODO REDO
 function Library:WaitForIndex(Table, Index)
 	local Changed = Library:GetChangedEvent(Table)
-	Changed:WaitWithCheck(function(NIndex, Value)
+	return Changed:WaitWithCheck(function(NIndex, Value)
 		if NIndex == Index then
 			return true
 		end
 	end)
-	return Table[Index]
-end
-
-function Library:OnCall(T, F)
-	if getmetatable(T) == nil then
-		setmetatable(T, {__call = F})
-	else
-		getmetatable(T)["__call"] = F
-	end
 end
 
 
@@ -145,5 +75,104 @@ function Library.Random(T)
 	return T[math.random(1,#T)]
 end
 Library.random = Library.Random
+
+
+local Metatable = {}
+Metatable.OnChange = QuickSignal.new()
+Metatable.OnCall = QuickSignal.new()
+Metatable.IndexChangedEvents = {}
+Metatable.HiddenIndexes = {}
+Metatable.LockedIndexes = {}
+
+function Metatable:__index(table, Key)
+	if not self.HiddenIndexes[Key] then
+		if self.IndexFunction then
+			return self.IndexFunction(table, Key)
+		else
+			return rawget(table, Key)
+		end
+	else
+		error("Attempted to read hidden index.")
+	end
+end
+function Metatable:__newindex(table, Index, Value)
+	if not self.LockedIndexes[Index] then
+		if not self.HiddenIndexes[Index] then
+			if self.ChangeFunction then
+				self.ChangeFunction(table, Index, Value)
+				if rawget(table, Index) == Value then
+					self.OnChange:Fire(Index, Value)
+					if self.IndexChangedEvents[Index] then
+						self.IndexChangedEvents[Index]:Fire(Value)
+					end
+				end
+			else
+				rawset(table, Index, Value)
+				self.OnChange:Fire(Index, Value)
+				if self.IndexChangedEvents[Index] then
+					self.IndexChangedEvents[Index]:Fire(Value)
+				end
+			end
+		else
+			error("Attempted to set hidden index.")
+		end
+	else
+		error("Attempted to set locked index.")
+	end
+end
+function Metatable:__call(...)
+	self.OnCall:Fire(...)
+end
+
+
+function Library.HideIndex(Table, Index)
+	local Meta = getmetatable(Table)
+	if not Metatable then
+		setmetatable(Table, table.clone(Metatable))
+		Meta = getmetatable(Table)
+	end
+
+	Meta.HiddenIndexes[Index] = true
+end
+function Library.LockIndex(Table, Index)
+	local Meta = getmetatable(Table)
+	if not Metatable then
+		setmetatable(Table, table.clone(Metatable))
+		Meta = getmetatable(Table)
+	end
+
+	Meta.LockedIndexes[Index] = true
+end
+
+function Library.SetIndexHandler(Table, Function)
+	local Meta = getmetatable(Table)
+	if not Metatable then
+		setmetatable(Table, table.clone(Metatable))
+		Meta = getmetatable(Table)
+	end
+
+	Meta.IndexFunction = Function
+end
+function Library.SetChangeHandler(Table, Function)
+	local Meta = getmetatable(Table)
+	if not Metatable then
+		setmetatable(Table, table.clone(Metatable))
+		Meta = getmetatable(Table)
+	end
+
+	Meta.NewIndexFunction = Function
+end
+function Library.GetChangedEvent(Table)
+	local Meta = getmetatable(Table)
+	if not Metatable then
+		setmetatable(Table, table.clone(Metatable))
+		Meta = getmetatable(Table)
+	end
+
+	return Meta.OnChange
+end
+function Library.GetIndexChangedEvent()
+	
+end
 
 return Library
