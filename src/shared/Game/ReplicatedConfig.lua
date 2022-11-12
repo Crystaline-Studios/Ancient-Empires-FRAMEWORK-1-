@@ -1,9 +1,8 @@
--- Created By Carrotoplia on Fri Oct 14 00:27:37 2022
--- For easy config creation
-local Config = {}
+--[=[
+	@class ReplicatedConfig
 
-Config.ToolService = {
-	ToolifyStarterPack = true -- turns models inside 
-}
+	Used to configure anything thats in the shared folder.
+]=]
+local Config = {}
 
 return Config

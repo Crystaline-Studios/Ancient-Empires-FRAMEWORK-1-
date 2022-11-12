@@ -1,12 +1,6 @@
--- Created By Carrotoplia on Sat Oct 15 20:13:51 2022
-
------------------------------>> Services and Modules <<---------------------------------
-
 local Players = game:GetService("Players")
 
 local DataBank = require(script.Parent.Parent.Databank)
-
------------------------------>> All of the Variables! <<---------------------------------
 
 local ServerBans = {}
 Players.PlayerAdded:Connect(function(Player)
@@ -23,8 +17,6 @@ Players.PlayerAdded:Connect(function(Player)
 		end
 	end
 end)
-
------------------------------>> The Service The Best One!!! <<---------------------------------
 
 local Service = {}
 

@@ -4,7 +4,11 @@
     "$className": "DataModel",
 
     "ReplicatedStorage": {
-      "$path": "src/shared"
+      "$className": "ReplicatedStorage",
+      "$path": "src/shared",
+      "Packages": {
+        "$path": "Packages"
+      }
     },
 
     "ServerScriptService": {
@@ -42,12 +46,6 @@
             512
           ]
         }
-      },
-      "Map": {
-        "$className": "Folder"
-      },
-      "ScriptedMap": {
-        "$className": "Folder"
       }
     }
   }

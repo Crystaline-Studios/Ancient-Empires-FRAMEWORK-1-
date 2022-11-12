@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkdocs=self.webpackChunkdocs||[]).push([[784],{63891:s=>{s.exports=JSON.parse('{"sourceUrl":"https://github.com/Crystaline-Studios/Ancient-Empires/blob/main","baseUrl":"Ancient-Empires/","classOrder":[],"apiCategories":[]}')}}]);

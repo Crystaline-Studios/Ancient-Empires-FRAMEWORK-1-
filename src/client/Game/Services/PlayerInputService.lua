@@ -1,14 +1,4 @@
--- Created by carrotoplia on 10/20/2022 12:01 PM
--- for easy usage of keyboard, mouse, and everything else input releated
--- also device information
-
------------------------------>> Modules and Services <<---------------------------------
-
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
-
-
------------------------------>> Assets and Variables <<---------------------------------
 
 local AnyInputEvents = {}
 local AnyInputGameEvents = {}
@@ -94,7 +84,6 @@ UserInputService.InputEnded:Connect(function(Input, IsGameProccessed)
 		end
 	end
 end)
------------------------------>> Service <<---------------------------------
 
 local Service = {}
 Service.Class = "PlayerInputService"

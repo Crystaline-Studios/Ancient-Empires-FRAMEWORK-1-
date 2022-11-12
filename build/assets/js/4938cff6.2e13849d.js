@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkdocs=self.webpackChunkdocs||[]).push([[758],{51235:e=>{e.exports=JSON.parse('{"functions":[],"properties":[],"types":[],"name":"BridgeNet","desc":"Documentation here\\nhttps://ffrostflame.github.io/BridgeNet/","source":{"line":7,"path":"src/shared/Game/Libraries/BridgeNet.lua"}}')}}]);

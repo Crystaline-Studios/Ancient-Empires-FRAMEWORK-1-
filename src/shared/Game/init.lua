@@ -1,17 +1,15 @@
------------------------------>> Services and modules <<---------------------------------
 
-local ReplicatedStorage      = game:GetService("ReplicatedStorage")
-local RunService             = game:GetService("RunService")
-local ServerScriptService    = game:GetService("ServerScriptService")
-local Players 				 = game:GetService("Players")
-local LocalPlayerScripts     = if Players.LocalPlayer then Players.LocalPlayer.PlayerScripts else nil 
-
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local ServerScriptService = game:GetService("ServerScriptService")
+local Players = game:GetService("Players")
+local LocalPlayerScripts = if Players.LocalPlayer then Players.LocalPlayer.PlayerScripts else nil 
 
 
-local Get = require(game:GetService("ReplicatedStorage").Get)
-local QuickSignal = require(Get("QuickSignal"))
 
------------------------------>> Variables <<---------------------------------
+local GET = require(game:GetService("ReplicatedStorage").Get)
+local GoodSignal = require(GET("GoodSignal"))
+
 
 local Libraries = {}
 local Services = {}
@@ -19,11 +17,23 @@ local Services = {}
 local TrackedCoroutines = {}
 local TrackedScriptData = {}
 
-local ServiceAdded = QuickSignal.new()
-
------------------------------>> Object <<---------------------------------
+local ServiceAdded = GoodSignal.new()
 
 
+--[=[
+	@class Luagame
+
+	The way you access everything in the framework.
+	You can access services and libraries and gameproperties through this example: 
+
+	game.Workspace
+	runs getservice for the service
+
+	game.PlaceID
+	gives placeid
+
+	game.ModerationService
+]=]
 local Luagame = {}
 Luagame.Class = "Engine"
 Luagame.ServiceAdded = ServiceAdded
@@ -56,7 +66,7 @@ function Metatable:__index(_, Index)
 end
 setmetatable(Luagame, Metatable)
 
---------- Services
+--/------- Services
 for _,Service in pairs(ReplicatedStorage.Game.Services:GetDescendants()) do
 	if Service:IsA("ModuleScript") then 
 		if Services[Service.Name] then
@@ -94,19 +104,31 @@ else
 	end
 end
 
+--[=[
+	Yields until that Luabased service is finished loading then returns it
+
+	@param Name string -- The services name
+	@return service -- The service you asked for
+]=]
 function Luagame:GetService(Name)
-    return ServiceAdded:WaitWithCheck(function(NName)
-        if NName == Name then
-            return true
-        end
-    end)
+	return ServiceAdded:WaitWithCheck(function(NName)
+		if NName == Name then
+			return true
+		end
+	end)
 end
 
 
 
--------- Instance Creation
+--/------ Instance Creation
 
+--[=[
+	Creates LuaObjects very quickly and easily
 
+	@param Type string -- the objects classname
+	@param ... turple -- extra stuff to shove in the .new or .bind
+	@return LuaObject -- An brand new luaobject.
+]=]
 function Luagame.Create(Type, ...)
 	local Module
 	for _,SChild in pairs(ReplicatedStorage.Game.LuaObjects:GetDescendants()) do
@@ -140,9 +162,16 @@ function Luagame.Create(Type, ...)
 end
 
 
----------- Script State Control
+--/-------- Script State Control
+--[=[
+	Unlocks the ability to yield / resume remotely 
 
+	@param Script instance -- just use script keyword
+	@param Yield bool -- True or false value determaining if it yields instantly
+]=]
 function Luagame:Track(Script, Yield)
+	assert(typeof(Script) == "Instance" and Script:IsA("Script"), "Script isn't a SCRIPT >:(")
+
 	local Tab = {Coroutine = coroutine.running(), Value = true}
 	TrackedCoroutines[Script] = Tab
 	
@@ -153,6 +182,11 @@ function Luagame:Track(Script, Yield)
 	return Tab
 end
 
+--[=[
+	Yields the script provided.(It has to be tracked with track)
+
+	@param Script instance -- Script that you want to yield
+]=]
 function Luagame:Yield(Script)
 	assert(Script, "Missing Parameter: Script")
 	
@@ -165,48 +199,82 @@ function Luagame:Yield(Script)
 	return TrackedScriptData[Script]
 end
 
-function Luagame:Release(Script, ...)
+--[=[
+	Resumes the script provided.(It has to be tracked with track)
+
+	@param Script instance -- Script that you want to resume
+]=]
+function Luagame:Release(Script)
 	assert(Script, "Missing Parameter: Script")
 
 	if not TrackedCoroutines[Script] then
 		error("Attempted to release a non captured script.")
 	else
-		TrackedCoroutines[Script].Value = true
-		TrackedScriptData[Script] = ...
 		coroutine.resume(TrackedCoroutines[Script].Coroutine)
 	end 
 end
 
+--[=[
+	Yields the children of the instance provided.
+
+	@param Folder instance -- Folder to get the children of
+]=]
 function Luagame:YieldFolder(Folder)
 	assert(Folder, "Missing Parameter: Folder")
 	for _,Child in pairs(Folder:GetChildren()) do
 		if Child:IsA("Script") or Child:IsA("LocalScript") then
-			Luagame:Yield(Child)
+			local  _, _  = pcall(function()
+				Luagame:Yield(Child)
+			end)
 		end
 	end
 end
 
-function Luagame:ReleaseFolder(Folder, ...)
+--[=[
+	Resumes the children of the instance provided.
+
+	@param Folder instance -- Instance to get the children of
+]=]
+function Luagame:ReleaseFolder(Folder)
 	assert(Folder, "Missing Parameter: Folder")
 	for _,Child in pairs(Folder:GetChildren()) do
 		if Child:IsA("Script") or Child:IsA("LocalScript") then
-			Luagame:Release(Child, ...)
+			local  _, _  = pcall(function()
+				Luagame:Release(Child)
+			end)
 		end
 	end
 end
+
+--[=[
+	Yields the descendants of the instance provided.
+
+	@param Folder instance -- Folder to get the descendants of
+]=]
 function Luagame:YieldFolderDeep(Folder)
 	assert(Folder, "Missing Parameter: Folder")
+
 	for _,Child in pairs(Folder:GetDescendants()) do
 		if Child:IsA("Script") or Child:IsA("LocalScript") then
-			Luagame:Yield(Child)
+			local _, _ = pcall(function()
+				Luagame:Yield(Child)
+			end)
 		end
 	end
 end
+
+--[=[
+	resumes the descendants of the instance provided.
+
+	@param Folder instance -- Folder to get the descendants of
+]=]
 function Luagame:ReleaseFolderDeep(Folder)
 	assert(Folder, "Missing Parameter: Folder")
 	for _,Child in pairs(Folder:GetDescendants()) do
 		if Child:IsA("Script") or Child:IsA("LocalScript") then
-			Luagame:Release(Child)
+			local  _, _  = pcall(function()
+				Luagame:Release(Child)
+			end)
 		end
 	end
 end

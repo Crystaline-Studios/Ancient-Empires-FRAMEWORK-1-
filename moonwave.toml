@@ -1,0 +1,22 @@
+title = "Ancient Empires"  # From Git
+gitRepoUrl = "https://github.com/Crystaline-Studios/Ancient-Empires" # From Git
+
+gitSourceBranch = "main"
+changelog = true
+classOrder = []
+
+[docusaurus]
+onBrokenLinks = "throw"
+onBrokenMarkdownLinks = "warn"
+favicon = "LuaIcon.png"
+
+# From git:
+organizationName = "Crystaline Studios"
+projectName = "MyProjectName"
+url = "https://Carrotoplia.github.io"
+baseUrl = "/AncientEmpires/"
+tagline = "Your project's tagline"
+
+[footer]
+style = "dark"
+copyright = "Copyright © 2022 Carrotoplia. Built with Moonwave, Love and Docusaurus"

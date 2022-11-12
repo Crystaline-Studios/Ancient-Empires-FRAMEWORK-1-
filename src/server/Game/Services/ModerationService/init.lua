@@ -1,8 +1,3 @@
--- Created By Carrotoplia on Fri Oct 14 21:02:09 2022
--- for easy moderation and exploit detection.
-
------------------------------>> Modules / Services / Nonchanging Assets <<---------------------------------
-
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
@@ -10,7 +5,7 @@ local ProximityPromptService = game:GetService("ProximityPromptService")
 
 local ModActions = require(script.ModerationActions)
 local Get = require(ReplicatedStorage.Get)
-local QuickSignal = require(Get("QuickSignal"))
+local GoodSignal = require(Get("GoodSignal"))
 local Config = require(Get("SConfig"))
 Config = Config.ModerationService
 
@@ -23,17 +18,15 @@ function RunSync(F)
     task.desynchronize()
 end
 
------------------------------>> The Service / THE THE THE SERVICE <<---------------------------------
-
 local Service = setmetatable({}, {__index = ModActions})
 
-Service.OnTriggered = QuickSignal.new()
-Service.OnFly = QuickSignal.new()
-Service.OnNoclip = QuickSignal.new()
-Service.OnMagnitude = QuickSignal.new()
-Service.OnGodmode = QuickSignal.new()
-Service.OnRootremoval = QuickSignal.new()
-Service.OnFaketrigger = QuickSignal.new()
+Service.OnTriggered = GoodSignal.new()
+Service.OnFly = GoodSignal.new()
+Service.OnNoclip = GoodSignal.new()
+Service.OnMagnitude = GoodSignal.new()
+Service.OnGodmode = GoodSignal.new()
+Service.OnRootremoval = GoodSignal.new()
+Service.OnFaketrigger = GoodSignal.new()
 
 ProximityPromptService.PromptButtonHoldBegan:Connect(function(Prompt, Player)
     local ActionLog = ModActions:GetAnticheatLog(Player.UserId)
@@ -87,7 +80,6 @@ Players.PlayerAdded:Connect(function(Player)
     local ActionLog = ModActions:GetAnticheatLog(Player.UserId)
     local IsBanned = ModActions:IsBanned(Player.UserId) 
 
-    ----- Ban Detection ------
     if IsBanned == true or IsBanned and os.time() < IsBanned then
         Player:Kick(ModActions:GetBanReason(Player.UserId))
     end
@@ -151,7 +143,7 @@ Players.PlayerAdded:Connect(function(Player)
 
 
             task.desynchronize()
-            -------------------- Magnitude Check ----------------------
+            --/-------------------- Magnitude Check --------------------
             if Config.MagnitudeCheck and FrameData.DoMagnitudeCheck then
                 if (FrameData.Position - RootPosition).Magnitude > (WalkSpeed + Config.MagnitudeThreshold) / WaitTime then
                     RunSync(function()
@@ -168,7 +160,7 @@ Players.PlayerAdded:Connect(function(Player)
             end
 
             
-            ---------------- Noclip Check ---------------------------
+            --/-------------- Noclip Check ---------------------------
             if Config.NoclipCheck then
                 local RayParams = RaycastParams.new()
                 RayParams.IgnoreWater = true
@@ -191,7 +183,7 @@ Players.PlayerAdded:Connect(function(Player)
             end
 
 
-            ---------------- Flight Check ---------------------------
+            --/-------------- Flight Check ---------------------------
             local RayParams = RaycastParams.new()
             RayParams.IgnoreWater = false
 

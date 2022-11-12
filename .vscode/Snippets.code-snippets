@@ -36,5 +36,11 @@
 		"body": [
 			"----------------------------->>  <<---------------------------------"
 		]
+	},
+	"GET": {
+		"prefix": "GET",
+		"body": [
+			"local GET = require(game:GetService('ReplicatedStorage').Get)"
+		]
 	}
 }

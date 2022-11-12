@@ -1,67 +1,34 @@
--- Created By Carrotoplia on Tue Oct 11 13:48:00 2022
--- For easy creation of debounces
-
------------------------------>> Object <<---------------------------------
+local GET = require(game:GetService('ReplicatedStorage').Get)
+local table = require(GET("Table"))
 
 
 local Object = {}
-Object.Class = "ObjectCreator"
-Object.class = Object.Class
 
 
+--[=[
+	@class Debounce
 
-
-
+	Quickly make debounces!
+]=]
 function Object.new()
-	local Debounce = {}
-	local DebounceCallbacks = {}
-		
-	Debounce.Class = "Debounce"
-	Debounce.OnCooldown = false
-	
-	function Debounce:Wait()
-		if Debounce.OnCooldown then
-			local Running = coroutine.running()
-			table.insert(DebounceCallbacks, function()
-				coroutine.resume(Running)
-			end)
+	local DebounceTime = os.time()
+	local WaitTime = 0
 
-			coroutine.yield()
+	--[=[
+		@within Debounce
+		Used to quickly make debounces
+
+		@param Time number -- Number of seconds to wait before it can be used again.
+	]=]
+	local function MyFunction(Time)
+		if os.time() > DebounceTime + WaitTime then
+			DebounceTime = os.time() 
+			WaitTime = Time
+			return true
 		end
 	end
-	
-	
-	
-	
-	function Debounce:Bounce(Time)
-		if Time then
-			if typeof(Time) == "number" then
-				if Debounce.OnCooldown == false then
-					task.spawn(function()
-						Debounce.OnCooldown = true
-						task.wait(Time)
-						Debounce.OnCooldown = false
-						for Pos, F in pairs(DebounceCallbacks) do
-							F()
-							DebounceCallbacks[Pos] = nil
-						end
-					end)
-				else
-					warn("Attempted to debounce while its on Debounce if there is a use case of this lmk")
-				end
-			else
-				error("Time is not a number time is a " .. typeof(Time))
-			end
-		else
-			error("Time is missing")
-		end
-	end
-	Debounce.bounce = Debounce.Bounce
-	
-	
-	return Debounce
+
+	return MyFunction
 end
-Object.New = Object.new
-
 
 return Object

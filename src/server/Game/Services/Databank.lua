@@ -1,7 +1,3 @@
--- Created By Carrotoplia on Sat Oct 15 00:16:48 2022
-
------------------------------>> Modules / Services <<---------------------------------
-
 local Players = game:GetService("Players")
 local ServerScriptService = game:GetService("ServerScriptService")
 local ProfileService = require(script.Parent.ProfileService)
@@ -10,8 +6,6 @@ local ProfileService = require(script.Parent.ProfileService)
 local Get = require(game:GetService("ReplicatedStorage").Get)
 local SConfig = require(Get("SConfig"))
 local table = require(Get("table", "Libraries"))
-
------------------------------>> Tables / Variables / Misc <<---------------------------------
 
 local Config = SConfig.Databank
 
@@ -83,7 +77,6 @@ Players.PlayerRemoving:Connect(function(Player)
 	end
 end)
 
------------------------------>> The Bank <<---------------------------------
 local Bank = {}
 
 function Bank:GetPlayerDataTable(Player)

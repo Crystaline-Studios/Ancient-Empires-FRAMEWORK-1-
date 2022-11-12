@@ -1,21 +1,14 @@
---Created By Carrotoplia on Fri Oct 14 00:26:39 2022
--- For easier spawning experience.
-
------------------------------>> Services and Modules <<---------------------------------
-
 local Players = game:GetService("Players")
-local ServerScriptService = game:GetService("ServerScriptService")
+	
 
 local Get = require(game:GetService("ReplicatedStorage").Get)
 local SConfig = require(Get("SConfig"))
 local table = require(Get("table"))
 local ModerationService = require(script.Parent.ModerationService)
 
------------------------------>> Variables and crap <<---------------------------------
 
 local Config = SConfig.Embody
 
------------------------------>> Service <<---------------------------------
 
 local Service = {}
 Service.Class = "EmbodyService"
